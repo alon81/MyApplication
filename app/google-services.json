@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "191256808507",
+    "project_id": "webss-b353d",
+    "storage_bucket": "webss-b353d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:191256808507:android:1f38f5664df22aa982e01e",
+        "android_client_info": {
+          "package_name": "com.example.myapplication"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBqA6nmdet1FNrdPIs4akvGga4-AI2T3Kk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

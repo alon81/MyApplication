@@ -1,0 +1,62 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="#121212"
+    android:padding="16dp"
+    tools:context=".RegisterActivity">
+
+    <EditText
+        android:id="@+id/etRegisterEmail"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:hint="Enter your email"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#003366"
+        android:padding="12dp"
+        android:textColorHint="#B0B0B0"
+        android:inputType="textEmailAddress" />
+
+    <EditText
+        android:id="@+id/etRegisterPassword"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:hint="Enter your password"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#003366"
+        android:padding="12dp"
+        android:textColorHint="#B0B0B0"
+        android:inputType="textPassword" />
+
+    <EditText
+        android:id="@+id/etRegisterFname"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:hint="Enter your first name"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#003366"
+        android:padding="12dp"
+        android:textColorHint="#B0B0B0" />
+
+    <EditText
+        android:id="@+id/etRegisterLname"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:hint="Enter your last name"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#003366"
+        android:padding="12dp"
+        android:textColorHint="#B0B0B0" />
+
+    <Button
+        android:id="@+id/btnRegister"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Register"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#003366"
+        android:padding="12dp" />
+</LinearLayout>

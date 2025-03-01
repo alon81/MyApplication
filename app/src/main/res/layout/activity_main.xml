@@ -1,0 +1,60 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="#121212"
+    android:padding="32dp">
+
+    <!-- Email input field -->
+    <EditText
+        android:id="@+id/etLoginEmail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="email"
+        android:textColor="#000000"
+        android:background="#ffffff"
+        android:padding="16dp"
+        android:textSize="16sp"
+        android:layout_marginBottom="16dp"
+        android:layout_gravity="center" />
+
+    <!-- Password input field -->
+    <EditText
+        android:id="@+id/etLoginPassword"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="password"
+        android:inputType="textPassword"
+        android:textColor="#000000"
+        android:background="#ffffff"
+        android:padding="16dp"
+        android:textSize="16sp"
+        android:layout_marginBottom="32dp"
+        android:layout_gravity="center" />
+
+    <!-- Login Button -->
+    <Button
+        android:id="@+id/btnLogin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Login"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#003366"
+        android:padding="16dp"
+        android:textSize="18sp"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Register Button -->
+    <Button
+        android:id="@+id/btnRegister"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Register"
+        android:textColor="#003366"
+        android:backgroundTint="@android:color/transparent"
+        android:padding="16dp"
+        android:textSize="16sp"
+        android:layout_marginTop="16dp"
+        android:layout_gravity="center" />
+</LinearLayout>
