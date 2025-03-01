@@ -3,6 +3,7 @@ package com.example.myapplication;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
@@ -21,6 +22,10 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.TimeZone;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class ClockActivity extends AppCompatActivity {
 
@@ -44,7 +49,7 @@ public class ClockActivity extends AppCompatActivity {
         txtClock = findViewById(R.id.txtClock);
         txtGreeting = findViewById(R.id.txtGreeting);
         imgBackground = findViewById(R.id.imgBackground);
-        //btnLogout = findViewById(R.id.btnLogout);
+       // btnLogout = findViewById(R.id.btnLogout);
 
         // Initialize Firebase instances
         fbAuth = FirebaseAuth.getInstance();
@@ -61,6 +66,20 @@ public class ClockActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         });*/
+
+        NewsRepository newsRepository = new NewsRepository();
+        newsRepository.getArticlesByDomains("thenextweb.com",new Callback<NewsResponse>(){
+            @Override
+            public void onResponse(Call<NewsResponse> call, Response<NewsResponse> response) {
+                Log.d("ApiTest", "onResponse: ");
+            }
+
+            @Override
+            public void onFailure(Call<NewsResponse> call, Throwable t) {
+                Log.d("ApiTest", "onFailure: ");
+            }
+        });
+
     }
 
     @Override
@@ -155,3 +174,4 @@ public class ClockActivity extends AppCompatActivity {
         clockHandler.removeCallbacksAndMessages(null);
     }
 }
+
