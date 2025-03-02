@@ -6,32 +6,40 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class NewsRepository {
-    private static final String TAG ="ApiTest";
+    private static final String TAG = "ApiTest";
     private IApiService apiService;
-    private String apiKey = "5fe6e7f68f5940ac8dac631efefc2b4a";
+
 
     public NewsRepository() {
         apiService = ApiClient.getClient().create(IApiService.class);
     }
+    private static final String API_KEY = "5fe6e7f68f5940ac8dac631efefc2b4a"; // Your NewsAPI key
 
-    public void getArticlesByDomains(String domains, Callback<NewsResponse> callback) {
+    public void getSources(Callback<SourcesResponse> callback) {
+        Call<SourcesResponse> call = apiService.getNewsSources(API_KEY); // Use constant API key
+        call.enqueue(callback);
+    }
+
+
+    public void getArticlesByDomains(String domains, final ApiCallBack<NewsResponse> apiCallBack) {
         Log.d(TAG, "Fetching articles for domains: " + domains);
-        Call<NewsResponse> call = apiService.getNewsByDomains(domains, apiKey);
+        Call<NewsResponse> call = apiService.getNewsByDomains(domains, API_KEY);
         call.enqueue(new Callback<NewsResponse>() {
             @Override
             public void onResponse(Call<NewsResponse> call, Response<NewsResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    Log.i(TAG, "Successfully fetched articles. Total articles: " + response.body().getArticles().size());
+                    Log.i(TAG, "Articles fetched: " + response.body().getArticles().size());
+                    apiCallBack.OnSucces(response.body());  // Call OnSuccess with the response
                 } else {
-                    Log.w(TAG, "Failed to fetch articles. Response code: " + response.code());
+                    Log.w(TAG, "Failed to fetch articles: " + response.code());
+                    apiCallBack.OnFail();  // Call OnFail in case of failure
                 }
-                callback.onResponse(call, response);
             }
 
             @Override
             public void onFailure(Call<NewsResponse> call, Throwable t) {
                 Log.e(TAG, "Error fetching articles: " + t.getMessage(), t);
-                callback.onFailure(call, t);
+                apiCallBack.OnFail();  // Call OnFail in case of an error
             }
         });
     }

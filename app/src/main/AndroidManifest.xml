@@ -2,7 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.myapplication">
-
     <!-- Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -17,7 +16,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MyApplication"
         tools:targetApi="30">
-
+        <activity
+            android:name=".FollowPageActivity"
+            android:exported="false" />
         <!-- Splash Screen Activity -->
         <activity
             android:name=".SplashActivity"
@@ -26,30 +27,22 @@
             android:theme="@style/Theme.MyApplication">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-
-        <!-- Main Activity -->
+        </activity> <!-- Main Activity -->
         <activity
             android:name=".MainActivity"
-            android:exported="false" />
-
-        <!-- ChangeInfoActivity -->
+            android:exported="false" /> <!-- ChangeInfoActivity -->
         <activity
             android:name=".ChangeInfoActivity"
-            android:exported="false" />
-
-        <!-- ClockActivity -->
+            android:exported="false" /> <!-- ClockActivity -->
         <activity
             android:name=".ClockActivity"
-            android:exported="false" />
-
-        <!-- RegisterActivity -->
+            android:exported="false" /> <!-- RegisterActivity -->
         <activity
             android:name=".RegisterActivity"
             android:exported="false" />
-
     </application>
 
 </manifest>

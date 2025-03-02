@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Toolbar for menu -->
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?android:attr/colorPrimary"
+            android:titleTextColor="@android:color/white"/>
+
+        <!-- Search bar for news sources -->
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etSearchSources"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Search sources"
+            android:inputType="text"
+            android:minHeight="48dp" />
+
+        <!-- Container for search results (News sources) -->
+        <LinearLayout
+            android:id="@+id/newsSourcesContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="16dp"
+            android:padding="8dp"
+            android:scrollbars="vertical"/>
+
+        <!-- Container for followed sources -->
+        <LinearLayout
+            android:id="@+id/followedSourcesContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="16dp"
+            android:padding="8dp"
+            android:scrollbars="vertical"/>
+
+        <!-- Button to save preferences -->
+        <Button
+            android:id="@+id/btnSavePreferences"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Save Preferences"
+            android:layout_gravity="center"
+            android:padding="12dp"/>
+    </LinearLayout>
+
+</ScrollView>

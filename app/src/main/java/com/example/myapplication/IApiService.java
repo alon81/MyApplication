@@ -10,6 +10,10 @@ public interface IApiService {
             @Query("domains") String domains,
             @Query("apiKey") String apiKey
     );
+    @GET("v2/sources")
+    Call<SourcesResponse> getNewsSources(@Query("apiKey") String apiKey);
+
 }
+
 
 

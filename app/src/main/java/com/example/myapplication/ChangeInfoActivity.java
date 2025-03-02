@@ -75,6 +75,9 @@ public class ChangeInfoActivity extends AppCompatActivity {
             Intent clockIntent = new Intent(this, ClockActivity.class);
             startActivity(clockIntent);
             return true;
+        } else if (item.getItemId() == R.id.menu_follow_page) {
+            startActivity(new Intent(this, FollowPageActivity.class));
+            return true;
         } else if (item.getItemId() == R.id.menu_logout) {
             FirebaseAuth.getInstance().signOut();
             Intent logoutIntent = new Intent(this, MainActivity.class);

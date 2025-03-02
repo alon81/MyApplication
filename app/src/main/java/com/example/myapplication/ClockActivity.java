@@ -6,14 +6,12 @@ import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-import androidx.appcompat.widget.Toolbar;
-
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
@@ -21,6 +19,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.List;
 import java.util.TimeZone;
 
 import retrofit2.Call;
@@ -29,83 +28,62 @@ import retrofit2.Response;
 
 public class ClockActivity extends AppCompatActivity {
 
-    private TextView txtClock, txtGreeting;
+    private TextView txtClock, txtGreeting, txtArticles;
     private ImageView imgBackground;
-    private Button btnLogout;
     private FirebaseAuth fbAuth;
     private FirebaseFirestore db;
     private final Handler clockHandler = new Handler();
+    private NewsRepository newsRepository;
+    private static final String TAG = "ClockActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_clock);
 
-        // Set up the toolbar as the action bar
+        // Set up the toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        // Initialize views
+        // Initialize UI components
         txtClock = findViewById(R.id.txtClock);
         txtGreeting = findViewById(R.id.txtGreeting);
+        txtArticles = findViewById(R.id.txtArticles);
         imgBackground = findViewById(R.id.imgBackground);
-       // btnLogout = findViewById(R.id.btnLogout);
 
-        // Initialize Firebase instances
+        // Initialize Firebase
         fbAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // Display greeting and time
+        // Initialize repository
+        newsRepository = new NewsRepository();
+
+        // Display greeting message, start clock update, and fetch user preferences
         displayUserGreeting();
         updateClock();
-        /*
-        // Logout button listener
-        btnLogout.setOnClickListener(v -> {
-            FirebaseAuth.getInstance().signOut();
-            Intent intent = new Intent(ClockActivity.this, MainActivity.class);
-            startActivity(intent);
-            finish();
-        });*/
-
-        NewsRepository newsRepository = new NewsRepository();
-        newsRepository.getArticlesByDomains("thenextweb.com",new Callback<NewsResponse>(){
-            @Override
-            public void onResponse(Call<NewsResponse> call, Response<NewsResponse> response) {
-                Log.d("ApiTest", "onResponse: ");
-            }
-
-            @Override
-            public void onFailure(Call<NewsResponse> call, Throwable t) {
-                Log.d("ApiTest", "onFailure: ");
-            }
-        });
-
+        fetchUserPreferences();
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu, menu); // Inflate the menu
+        getMenuInflater().inflate(R.menu.menu, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-
         if (item.getItemId() == R.id.menu_clock) {
-            // You are already on the Clock page
             Toast.makeText(this, "You are already on the Clock page.", Toast.LENGTH_SHORT).show();
             return true;
         } else if (item.getItemId() == R.id.menu_change_info) {
-            // Go to ChangeInfoActivity
-            Intent changeInfoIntent = new Intent(this, ChangeInfoActivity.class);
-            startActivity(changeInfoIntent);
+            startActivity(new Intent(this, ChangeInfoActivity.class));
+            return true;
+        } else if (item.getItemId() == R.id.menu_follow_page) {
+            startActivity(new Intent(this, FollowPageActivity.class));
             return true;
         } else if (item.getItemId() == R.id.menu_logout) {
-
-            // Handle logout
-            FirebaseAuth.getInstance().signOut();
-            Intent logoutIntent = new Intent(this, MainActivity.class);
-            startActivity(logoutIntent);
+            fbAuth.signOut();
+            startActivity(new Intent(this, MainActivity.class));
             finish();
             return true;
         }
@@ -114,64 +92,90 @@ public class ClockActivity extends AppCompatActivity {
 
     private void displayUserGreeting() {
         String userId = fbAuth.getCurrentUser().getUid();
-
-        // Fetch user data from Firebase 'user' Firestore collection
         DocumentReference userRef = db.collection("user").document(userId);
         userRef.get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
+            if (task.isSuccessful() && task.getResult() != null) {
                 String firstName = task.getResult().getString("firstName");
                 String lastName = task.getResult().getString("lastName");
-
-                // Display personalized greeting
-                if (firstName != null && lastName != null) {
-                    txtGreeting.setText("Hello " + firstName + " " + lastName);
-                } else {
-                    Toast.makeText(ClockActivity.this, "User data incomplete", Toast.LENGTH_SHORT).show();
-                }
+                txtGreeting.setText(firstName != null && lastName != null
+                        ? "Hello " + firstName + " " + lastName
+                        : "Hello User!");
             } else {
-                Toast.makeText(ClockActivity.this, "Error fetching user data", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Error fetching user data", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
     private void updateClock() {
-        clockHandler.postDelayed(() -> {
-            // Get current time in Israel timezone
-            Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Jerusalem"));
-            SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
-            String time = timeFormat.format(calendar.getTime());
+        clockHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                // Get current time in Jerusalem timezone
+                Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Jerusalem"));
+                SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
+                txtClock.setText(timeFormat.format(calendar.getTime()));
 
-            // Update the clock TextView
-            txtClock.setText(time);
+                // Update background based on time of day
+                updateBackground(calendar.get(Calendar.HOUR_OF_DAY));
 
-            // Set background based on the time of day
-            updateBackground(calendar.get(Calendar.HOUR_OF_DAY));
-
-            // Schedule the next update after 1 second
-            clockHandler.postDelayed(this::updateClock, 1000);
+                // Update every second
+                clockHandler.postDelayed(this, 1000);
+            }
         }, 0);
     }
 
-
     private void updateBackground(int hourOfDay) {
-        // Set background image based on time of day
         if (hourOfDay >= 7 && hourOfDay < 15) {
-            // Morning (7:00 AM to 3:00 PM)
-            imgBackground.setImageResource(R.drawable.morning_image); // Replace with your actual image
+            imgBackground.setImageResource(R.drawable.morning_image);
         } else if (hourOfDay >= 15 && hourOfDay < 19) {
-            // Afternoon (3:00 PM to 7:00 PM)
-            imgBackground.setImageResource(R.drawable.afternoon_image); // Replace with your actual image
+            imgBackground.setImageResource(R.drawable.afternoon_image);
         } else {
-            // Night (7:00 PM to 7:00 AM)
-            imgBackground.setImageResource(R.drawable.night_image); // Replace with your actual image
+            imgBackground.setImageResource(R.drawable.night_image);
         }
     }
+
+    private void fetchUserPreferences() {
+        String userId = fbAuth.getCurrentUser().getUid();
+        DocumentReference userRef = db.collection("user").document(userId);
+        userRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful() && task.getResult() != null) {
+                List<String> domains = (List<String>) task.getResult().get("domains");
+                if (domains != null && !domains.isEmpty()) {
+                    String domainQuery = String.join(",", domains);
+                    fetchArticles(domainQuery);
+                }
+            } else {
+                Log.e(TAG, "Error fetching user preferences");
+            }
+        });
+    }
+    // In ClockActivity.java
+    private void fetchArticles(String domains) {
+        newsRepository.getArticlesByDomains(domains, new ApiCallBack<NewsResponse>() {
+            @Override
+            public void OnSucces(NewsResponse response) {
+                if (response != null && response.getArticles() != null) {
+                    StringBuilder articleText = new StringBuilder();
+                    for (Article article : response.getArticles()) {
+                        articleText.append(article.getTitle()).append("\n");
+                    }
+                    txtArticles.setText(articleText.toString());
+                }
+            }
+
+            @Override
+            public void OnFail() {
+                Log.e(TAG, "Error fetching articles");
+            }
+        });
+    }
+
+
+
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        // Stop the clock handler to prevent memory leaks
-        clockHandler.removeCallbacksAndMessages(null);
+        clockHandler.removeCallbacksAndMessages(null); // Ensure we stop the clock updates when the activity is destroyed
     }
 }
-
