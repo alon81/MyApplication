@@ -1,6 +1,7 @@
 package com.example.myapplication;
 
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -9,15 +10,26 @@ public class ApiClient {
     private static final String BASE_URL = "https://newsapi.org/";
     private static Retrofit retrofit = null;
 
+    private static final String API_KEY = "5fe6e7f68f5940ac8dac631efefc2b4a";  // Replace with your actual API key
+
     public static Retrofit getClient() {
         if (retrofit == null) {
             // Create a logging interceptor
             HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
             logging.setLevel(HttpLoggingInterceptor.Level.BODY); // Logs request & response body
 
-            // Attach the interceptor to OkHttpClient
+            // Attach the interceptor to OkHttpClient with API Key
             OkHttpClient client = new OkHttpClient.Builder()
                     .addInterceptor(logging)
+                    .addInterceptor(chain -> {
+                        Request originalRequest = chain.request();
+                        Request newRequest = originalRequest.newBuilder()
+                                .url(originalRequest.url().newBuilder()
+                                        .addQueryParameter("apiKey", API_KEY)  // Add API key as a query parameter
+                                        .build())
+                                .build();
+                        return chain.proceed(newRequest);
+                    })
                     .build();
 
             // Build the Retrofit instance

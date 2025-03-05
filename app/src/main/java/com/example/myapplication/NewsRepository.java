@@ -1,6 +1,10 @@
 package com.example.myapplication;
 
 import android.util.Log;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -21,25 +25,26 @@ public class NewsRepository {
     }
 
 
-    public void getArticlesByDomains(String domains, final ApiCallBack<NewsResponse> apiCallBack) {
-        Log.d(TAG, "Fetching articles for domains: " + domains);
-        Call<NewsResponse> call = apiService.getNewsByDomains(domains, API_KEY);
-        call.enqueue(new Callback<NewsResponse>() {
+    public void getArticlesByDomains(String domains, String sortBy, ApiCallBack<NewsResponse> callback) {
+        // Create the query parameters including the 'sortBy' parameter
+        Map<String, String> queryParams = new HashMap<>();
+        queryParams.put("domains", domains);
+        queryParams.put("sortBy", sortBy); // Passing the sortBy parameter
+
+        // Make the API request with the query parameters
+        apiService.getArticles(queryParams).enqueue(new Callback<NewsResponse>() {
             @Override
             public void onResponse(Call<NewsResponse> call, Response<NewsResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    Log.i(TAG, "Articles fetched: " + response.body().getArticles().size());
-                    apiCallBack.OnSucces(response.body());  // Call OnSuccess with the response
+                    callback.OnSucces(response.body());
                 } else {
-                    Log.w(TAG, "Failed to fetch articles: " + response.code());
-                    apiCallBack.OnFail();  // Call OnFail in case of failure
+                    callback.OnFail();
                 }
             }
 
             @Override
             public void onFailure(Call<NewsResponse> call, Throwable t) {
-                Log.e(TAG, "Error fetching articles: " + t.getMessage(), t);
-                apiCallBack.OnFail();  // Call OnFail in case of an error
+                callback.OnFail();
             }
         });
     }

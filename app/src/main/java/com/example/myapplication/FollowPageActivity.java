@@ -1,41 +1,35 @@
 package com.example.myapplication;
 
+import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Button;
+import android.view.View;
 import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.TextView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.appcompat.widget.Toolbar;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-
 public class FollowPageActivity extends AppCompatActivity {
 
-    private LinearLayout newsSourcesContainer;
-    private LinearLayout followedSourcesContainer;
-    private EditText etSearchSources;
-    private Button btnSavePreferences;
-    private SharedPreferences sharedPreferences;
-    private Set<String> followedSources;
-    private static final String TAG = "FollowPageActivity";
+    private RecyclerView rvFollowedDomains;
+    private FollowedAdapter followedAdapter;
+    private ProgressBar progressBar;
+    private FirestoreHelper firestoreHelper;
+    private EditText editTextDomainName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,126 +39,134 @@ public class FollowPageActivity extends AppCompatActivity {
         // Set up the toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle("Follow News Sources");
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
 
-        // Initialize views
-        newsSourcesContainer = findViewById(R.id.newsSourcesContainer);
-        followedSourcesContainer = findViewById(R.id.followedSourcesContainer);
-        etSearchSources = findViewById(R.id.etSearchSources);
-        btnSavePreferences = findViewById(R.id.btnSavePreferences);
+        // Initialize views and helpers
+        rvFollowedDomains = findViewById(R.id.rvFollowedDomains);
+        progressBar = findViewById(R.id.progressBar);
+        editTextDomainName = findViewById(R.id.editTextDomainName);
+        firestoreHelper = new FirestoreHelper(this);
 
-        // Initialize SharedPreferences
-        sharedPreferences = getSharedPreferences("NewsPrefs", MODE_PRIVATE);
-        followedSources = sharedPreferences.getStringSet("followed_sources", new HashSet<>());
+        // Set up RecyclerView
+        rvFollowedDomains.setLayoutManager(new LinearLayoutManager(this));
+        followedAdapter = new FollowedAdapter(this, firestoreHelper);
+        rvFollowedDomains.setAdapter(followedAdapter);
 
-        // Display followed sources on startup
-        displayFollowedSources();
-
-        // Search functionality for news sources
-        etSearchSources.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                fetchNewsSources(s.toString());
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {}
-        });
-
-        // Save preferences when the button is clicked
-        btnSavePreferences.setOnClickListener(v -> savePreferences());
+        // Load followed news sources from Firestore
+        loadFollowedDomains();
     }
 
-    // Fetch the news sources that match the search query
-    private void fetchNewsSources(String query) {
-        NewsRepository newsRepository = new NewsRepository();
+    @Override
+    public boolean onSupportNavigateUp() {
+        finish();
+        return true;
+    }
+
+    // Load followed news sources from Firestore
+    private void loadFollowedDomains() {
+        progressBar.setVisibility(View.VISIBLE);
+        firestoreHelper.loadFollowedDomains(followedSources -> {
+            progressBar.setVisibility(View.GONE);
+            if (followedSources.isEmpty()) {
+                Toast.makeText(this, "No followed domains yet!", Toast.LENGTH_SHORT).show();
+            }
+            followedAdapter.setSources(followedSources);
+        });
+    }
+
+    // Add domain to favorites when button is clicked
+    public void onAddDomainButtonClicked(View view) {
+        String domainName = editTextDomainName.getText().toString().trim();
+
+        if (domainName.isEmpty()) {
+            Toast.makeText(this, "Please enter a domain name.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Check if the domain is supported by NewsAPI before adding it
+        checkIfDomainIsSupported(domainName);
+    }
+
+    // Check if the domain is supported by NewsAPI
+    private void checkIfDomainIsSupported(final String domainName) {
+        // Use the existing NewsRepository to fetch sources
+        NewsRepository newsRepository = new NewsRepository();  // Create an instance
         newsRepository.getSources(new Callback<SourcesResponse>() {
             @Override
             public void onResponse(Call<SourcesResponse> call, Response<SourcesResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    List<Source> sources = response.body().getSources();
-                    newsSourcesContainer.removeAllViews();
+                    boolean isDomainValid = false;
+                    SourcesResponse sourcesResponse = response.body();
 
-                    for (Source source : sources) {
-                        String sourceId = source.getId();
-                        String sourceName = source.getName();
-
-                        // Null check for sourceName
-                        if (sourceName != null && sourceName.toLowerCase().contains(query.toLowerCase())) {
-                            TextView sourceView = new TextView(FollowPageActivity.this);
-                            sourceView.setText(sourceName);
-                            sourceView.setTag(sourceId);  // Set the source ID as tag for identification
-
-                            // Set OnClickListener to follow/unfollow
-                            sourceView.setOnClickListener(v -> toggleFollowSource(sourceId, sourceName));
-
-                            newsSourcesContainer.addView(sourceView);
+                    // Check if the entered domain exists in the response list of sources
+                    for (Source source : sourcesResponse.getSources()) {
+                        if (source.getUrl().contains(domainName)) {
+                            isDomainValid = true;
+                            break;
                         }
                     }
+
+                    // If domain is valid, check if it is already followed by the user
+                    if (isDomainValid) {
+                        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                        FirebaseFirestore.getInstance()
+                                .collection("users")
+                                .document(userId)
+                                .collection("followedDomains")
+                                .document(domainName)
+                                .get()
+                                .addOnCompleteListener(task -> {
+                                    if (task.isSuccessful() && !task.getResult().exists()) {
+                                        // If domain is not already followed, add it
+                                        firestoreHelper.addFollowedDomain(domainName);
+                                        Toast.makeText(FollowPageActivity.this, domainName + " added to favorites!", Toast.LENGTH_SHORT).show();
+                                        loadFollowedDomains(); // Reload followed domains
+                                        editTextDomainName.setText(""); // Clear input field
+                                    } else {
+                                        // If domain is already followed, show a message
+                                        Toast.makeText(FollowPageActivity.this, domainName + " is already followed!", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                    } else {
+                        Toast.makeText(FollowPageActivity.this, "Domain is not supported by the API.", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(FollowPageActivity.this, "Error fetching sources.", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<SourcesResponse> call, Throwable t) {
-                Log.e(TAG, "Error fetching news sources: " + t.getMessage());
+                Toast.makeText(FollowPageActivity.this, "Failed to connect to API.", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    // Follow or unfollow a source
-    private void toggleFollowSource(String sourceId, String sourceName) {
-        if (sourceName == null) {
-            sourceName = "Unknown Source";  // Fallback if sourceName is null
-        }
-
-        if (followedSources.contains(sourceId)) {
-            followedSources.remove(sourceId);
-            Toast.makeText(this, "Unfollowed " + sourceName, Toast.LENGTH_SHORT).show();
-        } else {
-            followedSources.add(sourceId);
-            Toast.makeText(this, "Followed " + sourceName, Toast.LENGTH_SHORT).show();
-        }
-        displayFollowedSources();  // Update the followed sources display
-    }
-
-    // Display the followed sources at the bottom of the screen
-    private void displayFollowedSources() {
-        followedSourcesContainer.removeAllViews();
-        for (String sourceId : followedSources) {
-            TextView followedSourceView = new TextView(this);
-            followedSourceView.setText(sourceId);  // Use sourceId, or consider adding more info
-            followedSourcesContainer.addView(followedSourceView);
-        }
-    }
-
-    // Save followed sources to SharedPreferences
-    private void savePreferences() {
-        sharedPreferences.edit().putStringSet("followed_sources", followedSources).apply();
-        Toast.makeText(this, "Preferences Saved!", Toast.LENGTH_SHORT).show();
-    }
-
-    // Adding the menu to the activity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu, menu);
         return true;
     }
 
-    // Handling menu item selection
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.menu_clock) {
+            // Go to the Clock page
             startActivity(new Intent(this, ClockActivity.class));
             return true;
         } else if (item.getItemId() == R.id.menu_change_info) {
+            // Go to Change Info page
             startActivity(new Intent(this, ChangeInfoActivity.class));
             return true;
         } else if (item.getItemId() == R.id.menu_follow_page) {
-            Toast.makeText(this, "You are already on the Follow Page.", Toast.LENGTH_SHORT).show();
+            // You're already on the FollowPage, so just show a toast
+            Toast.makeText(this, "You are already on the Follow page.", Toast.LENGTH_SHORT).show();
             return true;
         } else if (item.getItemId() == R.id.menu_logout) {
+            // Log out the user and navigate to MainActivity (Login page)
             FirebaseAuth.getInstance().signOut();
             startActivity(new Intent(this, MainActivity.class));
             finish();
@@ -172,4 +174,7 @@ public class FollowPageActivity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
+
+
+
 }

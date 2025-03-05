@@ -12,12 +12,16 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
@@ -28,12 +32,14 @@ import retrofit2.Response;
 
 public class ClockActivity extends AppCompatActivity {
 
-    private TextView txtClock, txtGreeting, txtArticles;
+    private TextView txtClock, txtGreeting;
     private ImageView imgBackground;
     private FirebaseAuth fbAuth;
     private FirebaseFirestore db;
     private final Handler clockHandler = new Handler();
     private NewsRepository newsRepository;
+    private RecyclerView recyclerViewArticles;
+    private NewsAdapter newsAdapter;
     private static final String TAG = "ClockActivity";
 
     @Override
@@ -48,8 +54,8 @@ public class ClockActivity extends AppCompatActivity {
         // Initialize UI components
         txtClock = findViewById(R.id.txtClock);
         txtGreeting = findViewById(R.id.txtGreeting);
-        txtArticles = findViewById(R.id.txtArticles);
         imgBackground = findViewById(R.id.imgBackground);
+        recyclerViewArticles = findViewById(R.id.recyclerViewArticles);
 
         // Initialize Firebase
         fbAuth = FirebaseAuth.getInstance();
@@ -58,10 +64,94 @@ public class ClockActivity extends AppCompatActivity {
         // Initialize repository
         newsRepository = new NewsRepository();
 
+        // Set up RecyclerView
+        recyclerViewArticles.setLayoutManager(new LinearLayoutManager(this));
+        newsAdapter = new NewsAdapter(new ArrayList<>());
+        recyclerViewArticles.setAdapter(newsAdapter);
+
         // Display greeting message, start clock update, and fetch user preferences
         displayUserGreeting();
         updateClock();
-        fetchUserPreferences();
+        fetchFollowedDomains();  // Call the new method to fetch followed domains
+    }
+
+    private void fetchFollowedDomains() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) {
+            Log.d("ClockActivity", "User not authenticated");
+            return;
+        }
+        String userId = user.getUid();
+
+        // Corrected the collection name from "user" to "users" based on your Firestore structure
+        FirebaseFirestore.getInstance().collection("users").document(userId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        List<String> followedDomains = (List<String>) documentSnapshot.get("followedDomains");
+                        Log.d("ClockActivity", "Raw Firestore Data: " + documentSnapshot.getData());
+                        if (followedDomains == null || followedDomains.isEmpty()) {
+                            Log.d("ClockActivity", "No domains found for this user.");
+                            // Optionally show a message to the user
+                            showNoFollowedDomainsMessage();
+                        } else {
+                            Log.d("ClockActivity", "Followed Domains: " + followedDomains);
+                            fetchArticlesFromDomains(followedDomains);  // Fetch articles if domains exist
+                        }
+                    } else {
+                        Log.d("ClockActivity", "Document does not exist for user: " + userId);
+                        // Handle case where user document is missing
+                        showNoFollowedDomainsMessage();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("ClockActivity", "Error fetching domains", e);
+                    // Optionally show error to user
+                    showErrorMessage();
+                });
+    }
+
+    private void showNoFollowedDomainsMessage() {
+        // Display a message to the user if they have no followed domains
+        Toast.makeText(ClockActivity.this, "You have no followed news sources.", Toast.LENGTH_SHORT).show();
+    }
+
+    private void showErrorMessage() {
+        // Display a message to the user in case of an error fetching the domains
+        Toast.makeText(ClockActivity.this, "Failed to load your followed news sources.", Toast.LENGTH_SHORT).show();
+    }
+
+    private void fetchArticlesFromDomains(List<String> followedDomains) {
+        String domainQuery = String.join(",", followedDomains);
+        fetchArticles(domainQuery);
+    }
+
+    private void fetchArticles(String domains) {
+        Log.d(TAG, "Fetching articles for domains: " + domains); // Log the requested domains
+
+        newsRepository.getArticlesByDomains(domains, "publishedAt", new ApiCallBack<NewsResponse>() {
+            @Override
+            public void OnSucces(NewsResponse response) {
+                if (response != null) {
+                    Log.d(TAG, "API Response: " + response.toString()); // Log full API response
+
+                    List<Article> articles = response.getArticles();
+                    if (articles != null && !articles.isEmpty()) {
+                        Log.d(TAG, "Fetched " + articles.size() + " articles.");
+                        newsAdapter.updateArticles(articles); // Update adapter with articles
+                    } else {
+                        Log.d(TAG, "No articles found for the given domains.");
+                    }
+                } else {
+                    Log.e(TAG, "Error: API returned null response.");
+                }
+            }
+
+            @Override
+            public void OnFail() {
+                Log.e(TAG, "Error fetching articles from the API.");
+            }
+        });
     }
 
     @Override
@@ -91,34 +181,34 @@ public class ClockActivity extends AppCompatActivity {
     }
 
     private void displayUserGreeting() {
-        String userId = fbAuth.getCurrentUser().getUid();
-        DocumentReference userRef = db.collection("user").document(userId);
-        userRef.get().addOnCompleteListener(task -> {
-            if (task.isSuccessful() && task.getResult() != null) {
-                String firstName = task.getResult().getString("firstName");
-                String lastName = task.getResult().getString("lastName");
-                txtGreeting.setText(firstName != null && lastName != null
-                        ? "Hello " + firstName + " " + lastName
-                        : "Hello User!");
-            } else {
-                Toast.makeText(this, "Error fetching user data", Toast.LENGTH_SHORT).show();
-            }
-        });
+        String userId = fbAuth.getCurrentUser() != null ? fbAuth.getCurrentUser().getUid() : null;
+        if (userId != null) {
+            DocumentReference userRef = db.collection("user").document(userId);
+            userRef.get().addOnCompleteListener(task -> {
+                if (task.isSuccessful() && task.getResult() != null) {
+                    String firstName = task.getResult().getString("firstName");
+                    String lastName = task.getResult().getString("lastName");
+                    txtGreeting.setText(firstName != null && lastName != null
+                            ? "Hello " + firstName + " " + lastName
+                            : "Hello User!");
+                } else {
+                    Toast.makeText(this, "Error fetching user data", Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            Log.e(TAG, "No user is logged in.");
+            // Handle no user logged in case (maybe redirect to login screen)
+        }
     }
 
     private void updateClock() {
         clockHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                // Get current time in Jerusalem timezone
                 Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Jerusalem"));
                 SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
                 txtClock.setText(timeFormat.format(calendar.getTime()));
-
-                // Update background based on time of day
                 updateBackground(calendar.get(Calendar.HOUR_OF_DAY));
-
-                // Update every second
                 clockHandler.postDelayed(this, 1000);
             }
         }, 0);
@@ -134,44 +224,11 @@ public class ClockActivity extends AppCompatActivity {
         }
     }
 
-    private void fetchUserPreferences() {
-        String userId = fbAuth.getCurrentUser().getUid();
-        DocumentReference userRef = db.collection("user").document(userId);
-        userRef.get().addOnCompleteListener(task -> {
-            if (task.isSuccessful() && task.getResult() != null) {
-                List<String> domains = (List<String>) task.getResult().get("domains");
-                if (domains != null && !domains.isEmpty()) {
-                    String domainQuery = String.join(",", domains);
-                    fetchArticles(domainQuery);
-                }
-            } else {
-                Log.e(TAG, "Error fetching user preferences");
-            }
-        });
+    @Override
+    protected void onResume() {
+        super.onResume();
+        fetchFollowedDomains(); // Ensure fetching followed domains every time the activity is resumed
     }
-    // In ClockActivity.java
-    private void fetchArticles(String domains) {
-        newsRepository.getArticlesByDomains(domains, new ApiCallBack<NewsResponse>() {
-            @Override
-            public void OnSucces(NewsResponse response) {
-                if (response != null && response.getArticles() != null) {
-                    StringBuilder articleText = new StringBuilder();
-                    for (Article article : response.getArticles()) {
-                        articleText.append(article.getTitle()).append("\n");
-                    }
-                    txtArticles.setText(articleText.toString());
-                }
-            }
-
-            @Override
-            public void OnFail() {
-                Log.e(TAG, "Error fetching articles");
-            }
-        });
-    }
-
-
-
 
     @Override
     protected void onDestroy() {
