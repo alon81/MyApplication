@@ -10,7 +10,6 @@ class Article {
     private String publishedAt;
     private String content;
 public Article (){}
-    // Getters and setters
     public Source getSource() { return source; }
     public void setSource(Source source) { this.source = source; }
     public String getAuthor() { return author; }

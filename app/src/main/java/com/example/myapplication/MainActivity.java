@@ -23,21 +23,18 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Initialize Firebase Authentication
         fbAuth = FirebaseAuth.getInstance();
 
-        // Check if the user is already logged in
         FirebaseUser currentUser = fbAuth.getCurrentUser();
         if (currentUser != null) {
-            Intent intent = new Intent(MainActivity.this, HomeActivity.class); // Navigate to the clock page after login
+            Intent intent = new Intent(MainActivity.this, HomeActivity.class);
             startActivity(intent);
-            finish(); // Prevent navigating back to login
+            finish();
             return;
         }
 
-        setContentView(R.layout.activity_main); // Load the login screen
+        setContentView(R.layout.activity_main);
 
-        // Initialize views
         etLoginEmail = findViewById(R.id.etLoginEmail);
         etLoginPassword = findViewById(R.id.etLoginPassword);
         btnLogin = findViewById(R.id.btnLogin);
@@ -61,14 +58,13 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            // Attempt Firebase login
             fbAuth.signInWithEmailAndPassword(email, password)
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
-                            // Navigate to HomeActivity on successful login
+
                             Intent intent = new Intent(MainActivity.this, HomeActivity.class);
                             startActivity(intent);
-                            finish(); // Close the login page
+                            finish();
                         } else {
                             String errorMessage = task.getException() != null ? task.getException().getMessage() : "Login failed. Try again.";
                             Toast.makeText(MainActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
@@ -77,7 +73,6 @@ public class MainActivity extends AppCompatActivity {
                     });
         });
 
-        // Navigate to RegisterActivity
         btnGoToRegister.setOnClickListener(view -> {
             Intent intent = new Intent(MainActivity.this, RegisterActivity.class);
             startActivity(intent);
@@ -86,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
         // Forgot Password button click handler
         btnForgotPassword.setOnClickListener(view -> resetPassword());
     }
-
+//reset pass
     private void resetPassword() {
         String email = etLoginEmail.getText().toString().trim();
 

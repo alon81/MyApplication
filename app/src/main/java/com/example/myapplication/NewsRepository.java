@@ -30,13 +30,12 @@ public class NewsRepository {
 
     private static final String API_KEY = "176ca19806d8486eb27058d1ed8fc3f9";
 
-    // Fetch sources from NewsAPI
     public void getSources(Callback<SourcesResponse> callback) {
         Call<SourcesResponse> call = apiService.getNewsSources(API_KEY);
         call.enqueue(callback);
     }
 
-    // Fetch articles by specific sources, ensuring they are sorted only by newest (publishedAt)
+    // Fetch articles by specific sources so they are sorted only by newest
     public void getArticlesBySources(String sources, String sortBy, int pageSize, ApiCallBack<NewsResponse> callback) {
         if (sources == null || sources.isEmpty()) {
             Log.e(TAG, "Sources parameter is empty or null");
@@ -50,14 +49,13 @@ public class NewsRepository {
         }
 
         Map<String, String> queryParams = new HashMap<>();
-        queryParams.put("sources", sources);  // Use "sources" instead of "domains"
+        queryParams.put("sources", sources);
         queryParams.put("sortBy", sortBy);
-        queryParams.put("pageSize", String.valueOf(pageSize)); // Added pageSize parameter to get more than 20 articles
+        queryParams.put("pageSize", String.valueOf(pageSize));
         queryParams.put("apiKey", API_KEY);
 
         Log.d(TAG, "Sending API request with parameters: " + queryParams);
 
-        // Fetch articles sorted only by publishedAt in descending order
         apiService.getArticles(queryParams).enqueue(new Callback<NewsResponse>() {
             @Override
             public void onResponse(Call<NewsResponse> call, Response<NewsResponse> response) {
@@ -65,7 +63,6 @@ public class NewsRepository {
                     NewsResponse newsResponse = response.body();
                     Log.d(TAG, "Received articles: " + newsResponse.getArticles().size());
 
-                    // Pass the articles to the callback, which will update the RecyclerView adapter in the activity
                     callback.OnSucces(newsResponse);
                 } else {
                     Log.e(TAG, "API error: " + response.code() + " - " + response.message());
@@ -83,8 +80,7 @@ public class NewsRepository {
 
 
 
-    // Fetch followed sources from Firebase Firestore and get articles
-    // Fetch followed sources from Firebase Firestore and get articles
+    // Fetch followed sources from Firebase and get articles from them
     public void getArticlesByFollowedSources(String sortBy, ApiCallBack<NewsResponse> callback) {
         String userId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : null;
         if (userId == null) {
@@ -105,14 +101,13 @@ public class NewsRepository {
                             }
                         }
 
-                        // Log the sources to verify
                         Log.d(TAG, "Followed sources: " + sourcesList);
 
                         if (!sourcesList.isEmpty()) {
                             String sources = String.join(",", sourcesList);
                             Log.d(TAG, "Sources for API: " + sources);
 
-                            // Adjusted to fetch more articles (pageSize = 100) and sorted by newest
+                            // Adjusted to fetch more articles and sorted by newest
                             getArticlesBySources(sources, sortBy, 100, callback); // Fetch up to 100 articles sorted by newest
                         } else {
                             Log.e(TAG, "No followed sources found");

@@ -7,7 +7,6 @@ public class Source {
     private String url;
     private String category;
 
-    // Getters and setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
     public String getName() { return name; }

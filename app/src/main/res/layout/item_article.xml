@@ -48,7 +48,7 @@
 
         </LinearLayout>
 
-        <!-- URL dot at the bottom-right corner inside the card -->
+        <!-- URL dot -->
         <TextView
             android:id="@+id/txtArticleUrl"
             android:layout_width="wrap_content"

@@ -7,7 +7,6 @@ public class NewsResponse {
     private int totalResults;
     private List<Article> articles;
  public NewsResponse(){}
-    // Getters and setters
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
     public int getTotalResults() { return totalResults; }

@@ -10,33 +10,30 @@ public class ApiClient {
     private static final String BASE_URL = "https://newsapi.org/";
     private static Retrofit retrofit = null;
 
-    private static final String API_KEY = "176ca19806d8486eb27058d1ed8fc3f9";  // Replace with your actual API key
+    private static final String API_KEY = "176ca19806d8486eb27058d1ed8fc3f9";
 
     public static Retrofit getClient() {
         if (retrofit == null) {
-            // Create a logging interceptor
             HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
-            logging.setLevel(HttpLoggingInterceptor.Level.BODY); // Logs request & response body
+            logging.setLevel(HttpLoggingInterceptor.Level.BODY);
 
-            // Attach the interceptor to OkHttpClient with API Key
             OkHttpClient client = new OkHttpClient.Builder()
                     .addInterceptor(logging)
                     .addInterceptor(chain -> {
                         Request originalRequest = chain.request();
                         Request newRequest = originalRequest.newBuilder()
                                 .url(originalRequest.url().newBuilder()
-                                        .addQueryParameter("apiKey", API_KEY)  // Add API key as a query parameter
+                                        .addQueryParameter("apiKey", API_KEY)
                                         .build())
                                 .build();
                         return chain.proceed(newRequest);
                     })
                     .build();
 
-            // Build the Retrofit instance
             retrofit = new Retrofit.Builder()
                     .baseUrl(BASE_URL)
                     .addConverterFactory(GsonConverterFactory.create())
-                    .client(client) // Add the OkHttpClient with logging
+                    .client(client)
                     .build();
         }
         return retrofit;

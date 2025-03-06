@@ -21,9 +21,8 @@ public class FirestoreHelper {
         auth = FirebaseAuth.getInstance();
     }
 
-    // Load followed sources from Firestore for the current user
     public void loadFollowedSources(OnFollowedSourcesLoadedListener listener) {
-        String userId = auth.getCurrentUser().getUid(); // Get the current user's ID
+        String userId = auth.getCurrentUser().getUid();
         db.collection("user")
                 .document(userId)
                 .collection("followedSources")
@@ -43,22 +42,21 @@ public class FirestoreHelper {
 
     // Add a new followed source for the current user
     public void addFollowedSource(String source) {
-        String userId = auth.getCurrentUser().getUid(); // Get the current user's ID
+        String userId = auth.getCurrentUser().getUid();
 
-        // Check if the source is already followed by this user
+        // Chec source is already followed
         db.collection("user")
-                .document(userId)  // Using the user's UID
+                .document(userId)
                 .collection("followedSources")
                 .whereEqualTo("source", source)
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && task.getResult().isEmpty()) {
-                        // If the source is not already followed, add it
                         db.collection("user")
                                 .document(userId)
                                 .collection("followedSources")
                                 .add(new HashMap<String, Object>() {{
-                                    put("source", source); // Store source as a string
+                                    put("source", source);
                                 }})
                                 .addOnSuccessListener(documentReference -> {
                                     Log.d("FirestoreHelper", "Source added: " + source);
@@ -70,7 +68,7 @@ public class FirestoreHelper {
                 });
     }
 
-    // Remove a followed source for the current user
+    // Remove a source
     public void removeFollowedSource(String source) {
         String userId = auth.getCurrentUser().getUid();
         db.collection("user")
@@ -96,7 +94,6 @@ public class FirestoreHelper {
                 });
     }
 
-    // Interface for the listener callback
     public interface OnFollowedSourcesLoadedListener {
         void onFollowedSourcesLoaded(List<String> followedSources);
     }

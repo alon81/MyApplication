@@ -38,7 +38,7 @@ import java.util.TimeZone;
 public class ClockFragment extends Fragment {
 
     private TextView txtClock, txtGreeting;
-    private ImageView imgBackground; // Added ImageView for background
+    private ImageView imgBackground;
     private RecyclerView recyclerViewArticles;
     private NewsAdapter newsAdapter;
     private FirebaseAuth fbAuth;
@@ -52,23 +52,19 @@ public class ClockFragment extends Fragment {
         Toolbar toolbar = view.findViewById(R.id.toolbar);
         ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
 
-        // Enable options menu for this fragment
+
         setHasOptionsMenu(true);
 
-        // Initialize UI components
         txtClock = view.findViewById(R.id.txtClock);
         txtGreeting = view.findViewById(R.id.txtGreeting);
         imgBackground = view.findViewById(R.id.imgBackground);
         recyclerViewArticles = view.findViewById(R.id.recyclerViewArticles);
 
-        // Initialize Firebase
         fbAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // Initialize repository
         newsRepository = new NewsRepository();
 
-        // Set up RecyclerView
         recyclerViewArticles.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerViewArticles.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
 
@@ -83,14 +79,7 @@ public class ClockFragment extends Fragment {
         return view;
     }
 
-    private void logoutUser() {
-        fbAuth.signOut();  // Log out the user
-        Toast.makeText(getContext(), "Logged out successfully", Toast.LENGTH_SHORT).show();
-
-        // Redirect user to MainActivity (login screen)
-        startActivity(new Intent(getContext(), MainActivity.class));
-        getActivity().finish();  // Close the current activity
-    }
+    // takes from api
     private void fetchArticlesFromFollowedSources() {
         newsRepository.getArticlesByFollowedSources("publishedAt", new ApiCallBack<NewsResponse>() {
             @Override
@@ -117,7 +106,7 @@ public class ClockFragment extends Fragment {
     private void showErrorMessage() {
         Toast.makeText(getContext(), "Failed to load your news sources.", Toast.LENGTH_SHORT).show();
     }
-
+// user messege
     private void displayUserGreeting() {
         FirebaseUser currentUser = fbAuth.getCurrentUser();
         if (currentUser == null) {
@@ -132,10 +121,9 @@ public class ClockFragment extends Fragment {
                 String firstName = task.getResult().getString("firstName");
                 String lastName = task.getResult().getString("lastName");
 
-                // Get current hour of the day
+
                 int hourOfDay = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
 
-                // Determine greeting based on time of day
                 String greeting;
                 if (hourOfDay >= 19 || hourOfDay < 6) {
                     greeting = "Good night, " + firstName + " " + lastName + "!";
@@ -169,14 +157,14 @@ public class ClockFragment extends Fragment {
         }, 0);
     }
 
-    // Method to update the background based on the time of day
+    // background based on the time of day
     private void updateBackground(int hourOfDay) {
         if (hourOfDay >= 6 && hourOfDay < 12) {
-            imgBackground.setImageResource(R.drawable.morning_image); // Morning image
+            imgBackground.setImageResource(R.drawable.morning_image);
         } else if (hourOfDay >= 12 && hourOfDay < 19) {
-            imgBackground.setImageResource(R.drawable.afternoon_image); // Afternoon image
+            imgBackground.setImageResource(R.drawable.afternoon_image);
         } else {
-            imgBackground.setImageResource(R.drawable.night_image); // Night image
+            imgBackground.setImageResource(R.drawable.night_image);
         }
     }
 
@@ -184,17 +172,18 @@ public class ClockFragment extends Fragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        clockHandler.removeCallbacksAndMessages(null); // Stop clock updates when fragment is destroyed
+        clockHandler.removeCallbacksAndMessages(null);
     }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.menu, menu); // Inflate your menu
+        inflater.inflate(R.menu.menu, menu);
     }
+    //menu
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        Log.d("ClockFragment", "Menu item selected: " + item.getItemId());  // Debug log
+        Log.d("ClockFragment", "Menu item selected: " + item.getItemId());
 
         if (item.getItemId() == R.id.menu_clock) {
             Toast.makeText(getContext(), "You are already on the Clock page.", Toast.LENGTH_SHORT).show();

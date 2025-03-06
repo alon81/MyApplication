@@ -41,7 +41,7 @@ public class FollowPageFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_follow_page, container, false);
 
-        // Set up the toolbar
+        //  toolbar
         Toolbar toolbar = view.findViewById(R.id.toolbar);
         ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
         if (((AppCompatActivity) getActivity()).getSupportActionBar() != null) {
@@ -49,7 +49,6 @@ public class FollowPageFragment extends Fragment {
         }
         buttonAddSource = view.findViewById(R.id.buttonAddSource);
         buttonAddSource.setOnClickListener(this::onAddSourceButtonClicked);
-        // Enable options menu
         setHasOptionsMenu(true);
 
         // Initialize views and helpers
@@ -63,13 +62,11 @@ public class FollowPageFragment extends Fragment {
         followedAdapter = new FollowedAdapter(getContext(), firestoreHelper);
         rvFollowedSources.setAdapter(followedAdapter);
 
-        // Load followed news sources from Firestore
         loadFollowedSources();
 
         return view;
     }
 
-    // Load followed news sources from Firestore
     private void loadFollowedSources() {
         progressBar.setVisibility(View.VISIBLE);
         firestoreHelper.loadFollowedSources(followedSources -> {
@@ -154,12 +151,12 @@ public class FollowPageFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.menu, menu); // Inflate your menu
+        inflater.inflate(R.menu.menu, menu);
     }
-
+//menu
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        Log.d("FollowPageFragment", "Menu item selected: " + item.getItemId());  // Debug log
+        Log.d("FollowPageFragment", "Menu item selected: " + item.getItemId());
 
         if (item.getItemId() == R.id.menu_follow_page) {
             Toast.makeText(getContext(), "You are already on the Follow Page.", Toast.LENGTH_SHORT).show();

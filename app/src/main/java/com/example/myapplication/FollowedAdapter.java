@@ -31,7 +31,7 @@ public class FollowedAdapter extends RecyclerView.Adapter<FollowedAdapter.ViewHo
     public void onBindViewHolder(ViewHolder holder, int position) {
         String source = sources.get(position);
         holder.sourceName.setText(source);
-        holder.unfollowButton.setOnClickListener(v -> unfollowSource(source)); // Changed to "unfollowSource"
+        holder.unfollowButton.setOnClickListener(v -> unfollowSource(source));
     }
 
     @Override
@@ -44,10 +44,10 @@ public class FollowedAdapter extends RecyclerView.Adapter<FollowedAdapter.ViewHo
         notifyDataSetChanged();
     }
 
-    private void unfollowSource(String source) { // Changed to "unfollowSource"
-        firestoreHelper.removeFollowedSource(source); // Call FirestoreHelper to remove the source
-        sources.remove(source); // Remove source from the list locally
-        notifyDataSetChanged(); // Update the RecyclerView
+    private void unfollowSource(String source) {
+        firestoreHelper.removeFollowedSource(source);
+        sources.remove(source);
+        notifyDataSetChanged();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -57,7 +57,7 @@ public class FollowedAdapter extends RecyclerView.Adapter<FollowedAdapter.ViewHo
         public ViewHolder(View itemView) {
             super(itemView);
             sourceName = itemView.findViewById(R.id.source_name);
-            unfollowButton = itemView.findViewById(R.id.unfollow_button); // Initialize the unfollow button
+            unfollowButton = itemView.findViewById(R.id.unfollow_button);
         }
     }
 }

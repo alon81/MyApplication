@@ -9,7 +9,7 @@
     android:padding="32dp"
     tools:context=".RegisterActivity">
 
-    <!-- Email EditText -->
+    <!-- Email -->
     <EditText
         android:id="@+id/etRegisterEmail"
         android:layout_width="match_parent"
@@ -21,7 +21,7 @@
         android:inputType="textEmailAddress"
         android:layout_marginBottom="16dp"/>
 
-    <!-- Password EditText -->
+    <!-- Password  -->
     <EditText
         android:id="@+id/etRegisterPassword"
         android:layout_width="match_parent"
@@ -33,7 +33,7 @@
         android:inputType="textPassword"
         android:layout_marginBottom="16dp"/>
 
-    <!-- First Name EditText -->
+    <!-- FirstName  -->
     <EditText
         android:id="@+id/etRegisterFname"
         android:layout_width="match_parent"
@@ -44,7 +44,7 @@
         android:textColorHint="#B0B0B0"
         android:layout_marginBottom="16dp"/>
 
-    <!-- Last Name EditText -->
+    <!-- LastName  -->
     <EditText
         android:id="@+id/etRegisterLname"
         android:layout_width="match_parent"
@@ -55,7 +55,7 @@
         android:textColorHint="#B0B0B0"
         android:layout_marginBottom="32dp"/>
 
-    <!-- Register Button -->
+    <!-- Register  -->
     <Button
         android:id="@+id/btnRegister"
         android:layout_width="match_parent"

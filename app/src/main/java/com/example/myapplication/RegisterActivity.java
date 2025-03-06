@@ -41,43 +41,38 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
     @Override
     public void onClick(View view) {
         if (view == btnRegister) {
-            // Get the input values
             final String email = etRegisterEmail.getText().toString().trim();
             final String password = etRegisterPassword.getText().toString().trim();
             final String firstName = etRegisterFname.getText().toString().trim();
             final String lastName = etRegisterLname.getText().toString().trim();
 
-            // Validate input fields
             if (email.isEmpty() || password.isEmpty() || firstName.isEmpty() || lastName.isEmpty()) {
                 Toast.makeText(RegisterActivity.this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
                 return; // Exit the method and prevent further action
             }
-
-            // Validate email format
+            // format
             if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                 Toast.makeText(RegisterActivity.this, "Invalid email format", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // Validate password strength (min length 6 characters)
+            // min 6
             if (password.length() < 6) {
                 Toast.makeText(RegisterActivity.this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // Disable the button to prevent multiple registrations
+
             btnRegister.setEnabled(false);
 
-            // Proceed to create user if validation passed
+            // create user
             FirebaseAuth fbAuth = FirebaseAuth.getInstance();
             fbAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                 @Override
                 public void onComplete(Task<AuthResult> task) {
-                    // Re-enable the register button when done
                     btnRegister.setEnabled(true);
 
                     if (task.isSuccessful()) {
-                        // User creation was successful
                         MyUser user = new MyUser(email, firstName, lastName);
 
                         // Save user data in Firestore
@@ -89,8 +84,8 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                                         if (task.isSuccessful()) {
                                             Toast.makeText(RegisterActivity.this, "User registered successfully", Toast.LENGTH_SHORT).show();
                                             Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
-                                            startActivity(intent); // Navigate to MainActivity
-                                            finish(); // Close RegisterActivity
+                                            startActivity(intent);
+                                            finish();
                                         } else {
                                             String errorMessage = task.getException() != null ? task.getException().getMessage() : "Error saving user data.";
                                             Toast.makeText(RegisterActivity.this, "Error: " + errorMessage, Toast.LENGTH_SHORT).show();

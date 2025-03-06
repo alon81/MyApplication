@@ -4,21 +4,17 @@ package com.example.myapplication;
 public class MyUser {
     private String fName;
     private String lName;
-    private String email;  // Add email field
+    private String email;
 
-    // Default constructor (required for Firestore deserialization)
     public MyUser() {
-        // Empty constructor required for Firestore
     }
 
-    // Constructor with email, first name, and last name
     public MyUser(String email, String firstName, String lastName) {
         this.email = email;
         this.fName = firstName;
         this.lName = lastName;
     }
 
-    // Getter and Setter methods for firstName, lastName, and email
     public String getFirstName() {
         return fName;
     }

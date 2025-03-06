@@ -6,14 +6,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".ChangeInfoFragment">
 
-    <!-- ConstraintLayout for ChangeInfoFragment content -->
+    <!-- ConstraintLayout ChangeInfoFragment  -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#121212"
         tools:context=".ChangeInfoActivity">
 
-        <!-- Toolbar for the ActionBar -->
+        <!--  ActionBar Toolbar-->
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
@@ -21,7 +21,7 @@
             android:background="#003366"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Email Text and Value -->
+        <!-- Email    -->
         <TextView
             android:id="@+id/txtEmailLabel"
             android:layout_width="wrap_content"
@@ -47,7 +47,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             android:layout_marginTop="8dp" />
 
-        <!-- First Name Label and Input -->
+        <!-- First Name  -->
         <TextView
             android:id="@+id/txtFirstNameLabel"
             android:layout_width="wrap_content"
@@ -78,7 +78,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/txtFirstNameLabel" />
 
-        <!-- Last Name Label and Input -->
+        <!-- Last Name -->
         <TextView
             android:id="@+id/txtLastNameLabel"
             android:layout_width="wrap_content"
@@ -109,7 +109,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/txtLastNameLabel" />
 
-        <!-- Save Button -->
+        <!-- Save  -->
         <Button
             android:id="@+id/btnSaveChanges"
             android:layout_width="0dp"

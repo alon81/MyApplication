@@ -15,26 +15,22 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHol
 
     private List<Article> articleList;
 
-    // Constructor to initialize the list of articles
     public NewsAdapter(List<Article> articleList) {
         this.articleList = articleList;
     }
 
-    // Create the ViewHolder for each article item
     @Override
     public ArticleViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_article, parent, false);
         return new ArticleViewHolder(view);
     }
 
-    // Bind the data to the ViewHolder (populate the views)
     @Override
     public void onBindViewHolder(ArticleViewHolder holder, int position) {
-        // Make sure the position is valid
         if (position >= 0 && position < articleList.size()) {
             Article article = articleList.get(position);
             holder.titleTextView.setText(article.getTitle());
-            holder.sourceTextView.setText(article.getSource().getName());  // Adjust based on your Article object
+            holder.sourceTextView.setText(article.getSource().getName());
 
             // Set the URL dot and make it clickable
             String articleUrl = article.getUrl();
@@ -46,7 +42,7 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHol
         }
     }
 
-    // Return the number of articles in the list
+    // number of articles in the list
     @Override
     public int getItemCount() {
         if (articleList != null) {
@@ -56,7 +52,6 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHol
         }
     }
 
-    // ViewHolder to hold the views for each article item
     public static class ArticleViewHolder extends RecyclerView.ViewHolder {
 
         TextView titleTextView, sourceTextView, urlTextView;
@@ -69,7 +64,7 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHol
         }
     }
 
-    // Method to update the list of articles
+    //update the list of articles
     public void updateArticles(List<Article> articles) {
         if (articles != null && !articles.isEmpty()) {
             Log.d("NewsAdapter", "Updating articles. New size: " + articles.size());

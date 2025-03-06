@@ -40,24 +40,21 @@ public class ChangeInfoFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_change_info, container, false);
 
-        // Set up the toolbar as the action bar
+        // toolbar stup
         Toolbar toolbar = view.findViewById(R.id.toolbar);
         ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
 
-        // Initialize views
         etFirstName = view.findViewById(R.id.etFirstName);
         etLastName = view.findViewById(R.id.etLastName);
         txtEmail = view.findViewById(R.id.txtEmail);
         btnSaveChanges = view.findViewById(R.id.btnSaveChanges);
 
-        // Enable options menu
         setHasOptionsMenu(true);
 
-        // Initialize Firebase
         fbAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // Check if user is logged in and fetch user details
+        // Check login
         if (fbAuth.getCurrentUser() != null) {
             userId = fbAuth.getCurrentUser().getUid();
             displayUserDetails();
@@ -65,13 +62,12 @@ public class ChangeInfoFragment extends Fragment {
             redirectToMainActivity();
         }
 
-        // Set up save button functionality
         btnSaveChanges.setOnClickListener(v -> saveChanges());
 
         return view;
     }
 
-
+//user deats
     private void displayUserDetails() {
         DocumentReference userRef = db.collection("user").document(userId);
         userRef.get().addOnCompleteListener(task -> {
@@ -89,12 +85,12 @@ public class ChangeInfoFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.menu, menu); // Inflate your menu
+        inflater.inflate(R.menu.menu, menu);
     }
-
+//menu
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        Log.d("ChangeInfoFragment", "Menu item selected: " + item.getItemId());  // Debug log
+        Log.d("ChangeInfoFragment", "Menu item selected: " + item.getItemId());
 
         if (item.getItemId() == R.id.menu_change_info) {
             Toast.makeText(getContext(), "You are already on the Change Info page.", Toast.LENGTH_SHORT).show();

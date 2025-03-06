@@ -6,7 +6,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".FollowPageFragment">
 
-    <!-- LinearLayout for FollowPage content -->
+    <!-- LinearLayout FollowPage  -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -15,7 +15,7 @@
         android:background="#121212"
         android:gravity="center_vertical">
 
-        <!-- Toolbar with solid background color -->
+        <!-- Toolbar  -->
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
@@ -29,7 +29,7 @@
             android:layout_marginBottom="16dp"
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
-        <!-- ProgressBar with improved visibility -->
+        <!-- ProgressBar  -->
         <ProgressBar
             android:id="@+id/progressBar"
             android:layout_width="wrap_content"
@@ -40,7 +40,7 @@
             android:layout_marginTop="30dp"
             android:layout_marginBottom="30dp" />
 
-        <!-- EditText with search icon and improved visuals -->
+        <!-- source search -->
         <EditText
             android:id="@+id/editTextSourceName"
             android:layout_width="match_parent"
@@ -60,7 +60,7 @@
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"/>
 
-        <!-- Button with solid background and clean style -->
+        <!-- add source -->
         <Button
             android:id="@+id/buttonAddSource"
             android:layout_width="match_parent"
@@ -75,7 +75,7 @@
             android:elevation="6dp"
             android:layout_gravity="center"/>
 
-        <!-- RecyclerView for displaying followed sources with margin adjustments -->
+        <!-- display sources -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvFollowedSources"
             android:layout_width="match_parent"
