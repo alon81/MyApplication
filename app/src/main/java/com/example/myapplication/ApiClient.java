@@ -10,7 +10,7 @@ public class ApiClient {
     private static final String BASE_URL = "https://newsapi.org/";
     private static Retrofit retrofit = null;
 
-    private static final String API_KEY = "5fe6e7f68f5940ac8dac631efefc2b4a";  // Replace with your actual API key
+    private static final String API_KEY = "176ca19806d8486eb27058d1ed8fc3f9";  // Replace with your actual API key
 
     public static Retrofit getClient() {
         if (retrofit == null) {

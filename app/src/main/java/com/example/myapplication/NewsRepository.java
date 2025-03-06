@@ -28,7 +28,7 @@ public class NewsRepository {
         auth = FirebaseAuth.getInstance();
     }
 
-    private static final String API_KEY = "5fe6e7f68f5940ac8dac631efefc2b4a";
+    private static final String API_KEY = "176ca19806d8486eb27058d1ed8fc3f9";
 
     // Fetch sources from NewsAPI
     public void getSources(Callback<SourcesResponse> callback) {

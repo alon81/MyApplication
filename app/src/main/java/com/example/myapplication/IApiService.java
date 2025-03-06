@@ -11,10 +11,10 @@ public interface IApiService {
     @GET("v2/everything")
     Call<NewsResponse> getNewsByDomains(
             @Query("domains") String domains,
-            @Query("5fe6e7f68f5940ac8dac631efefc2b4a") String apiKey
+            @Query("176ca19806d8486eb27058d1ed8fc3f9") String apiKey
     );
     @GET("v2/sources")
-    Call<SourcesResponse> getNewsSources(@Query("5fe6e7f68f5940ac8dac631efefc2b4a") String apiKey);
+    Call<SourcesResponse> getNewsSources(@Query("176ca19806d8486eb27058d1ed8fc3f9") String apiKey);
 
         @GET("v2/sources")
         Call<SourcesResponse> getSources(@Query("language") String language);

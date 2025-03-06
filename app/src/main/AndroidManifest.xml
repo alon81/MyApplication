@@ -19,9 +19,7 @@
         <activity
             android:name=".HomeActivity"
             android:exported="false" />
-        <activity
-            android:name=".FollowPageActivity"
-            android:exported="false" /> <!-- Splash Screen Activity -->
+
         <activity
             android:name=".SplashActivity"
             android:exported="true"
@@ -34,14 +32,9 @@
             </intent-filter>
         </activity> <!-- Main Activity -->
         <activity
-            android:name=".MainActivity"
-            android:exported="false" /> <!-- ChangeInfoActivity -->
-        <activity
-            android:name=".ChangeInfoActivity"
-            android:exported="false" /> <!-- ClockActivity -->
-        <activity
-            android:name=".ClockActivity"
-            android:exported="false" /> <!-- RegisterActivity -->
+            android:name=".MainActivity">
+
+        </activity>
         <activity
             android:name=".RegisterActivity"
             android:exported="false" />
