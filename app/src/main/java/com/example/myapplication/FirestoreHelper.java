@@ -21,7 +21,6 @@ public class FirestoreHelper {
         auth = FirebaseAuth.getInstance();
     }
 
-    // Load followed domains from Firestore for the current user
     // Load followed sources from Firestore for the current user
     public void loadFollowedSources(OnFollowedSourcesLoadedListener listener) {
         String userId = auth.getCurrentUser().getUid(); // Get the current user's ID
@@ -67,19 +66,15 @@ public class FirestoreHelper {
                                 .addOnFailureListener(e -> {
                                     Log.w("FirestoreHelper", "Error adding source: ", e);
                                 });
-                    } else {
-                        // If the source is already followed, log a message or show a toast
-                        Log.d("FirestoreHelper", "Source already followed: " + source);
                     }
                 });
     }
 
-    // Remove a followed source from Firestore for the current user
+    // Remove a followed source for the current user
     public void removeFollowedSource(String source) {
-        String userId = auth.getCurrentUser().getUid(); // Get the current user's ID
-
+        String userId = auth.getCurrentUser().getUid();
         db.collection("user")
-                .document(userId)  // Using the user's UID
+                .document(userId)
                 .collection("followedSources")
                 .whereEqualTo("source", source)
                 .get()
@@ -87,7 +82,7 @@ public class FirestoreHelper {
                     if (task.isSuccessful() && !task.getResult().isEmpty()) {
                         String documentId = task.getResult().getDocuments().get(0).getId();
                         db.collection("user")
-                                .document(userId)  // Using the user's UID
+                                .document(userId)
                                 .collection("followedSources")
                                 .document(documentId)
                                 .delete()
@@ -101,7 +96,7 @@ public class FirestoreHelper {
                 });
     }
 
-    // Interface for callback when followed sources are loaded
+    // Interface for the listener callback
     public interface OnFollowedSourcesLoadedListener {
         void onFollowedSourcesLoaded(List<String> followedSources);
     }

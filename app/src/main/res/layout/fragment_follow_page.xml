@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".FollowPageFragment">
+
+    <!-- LinearLayout for FollowPage content -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="#121212"
+        android:gravity="center_vertical">
+
+        <!-- Toolbar with solid background color -->
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:title="Follow News Sources"
+            android:titleTextColor="#FFFFFF"
+            android:background="#003366"
+            android:elevation="12dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:layout_marginBottom="16dp"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+
+        <!-- ProgressBar with improved visibility -->
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:layout_gravity="center"
+            android:indeterminateTint="#003366"
+            android:layout_marginTop="30dp"
+            android:layout_marginBottom="30dp" />
+
+        <!-- EditText with search icon and improved visuals -->
+        <EditText
+            android:id="@+id/editTextSourceName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter source name"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#B0B0B0"
+            android:backgroundTint="#003366"
+            android:inputType="text"
+            android:minHeight="48dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:textSize="16sp"
+            android:layout_marginBottom="16dp"
+            android:layout_marginTop="24dp"
+            android:drawablePadding="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"/>
+
+        <!-- Button with solid background and clean style -->
+        <Button
+            android:id="@+id/buttonAddSource"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Add to Favorites"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#003366"
+            android:textSize="16sp"
+            android:padding="14dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="24dp"
+            android:elevation="6dp"
+            android:layout_gravity="center"/>
+
+        <!-- RecyclerView for displaying followed sources with margin adjustments -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvFollowedSources"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="16dp"
+            android:layout_weight="1"
+            android:paddingTop="16dp"
+            android:contentDescription="List of followed news sources"
+            android:importantForAccessibility="yes"/>
+
+    </LinearLayout>
+
+</FrameLayout>

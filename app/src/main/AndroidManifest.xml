@@ -17,9 +17,11 @@
         android:theme="@style/Theme.MyApplication"
         tools:targetApi="30">
         <activity
-            android:name=".FollowPageActivity"
+            android:name=".HomeActivity"
             android:exported="false" />
-        <!-- Splash Screen Activity -->
+        <activity
+            android:name=".FollowPageActivity"
+            android:exported="false" /> <!-- Splash Screen Activity -->
         <activity
             android:name=".SplashActivity"
             android:exported="true"

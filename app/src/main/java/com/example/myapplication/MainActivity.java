@@ -16,7 +16,7 @@ import com.google.firebase.auth.FirebaseUser;
 public class MainActivity extends AppCompatActivity {
 
     EditText etLoginEmail, etLoginPassword;
-    Button btnLogin, btnGoToRegister;
+    Button btnLogin, btnGoToRegister, btnForgotPassword;
     FirebaseAuth fbAuth;
 
     @Override
@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
         // Check if the user is already logged in
         FirebaseUser currentUser = fbAuth.getCurrentUser();
         if (currentUser != null) {
-            Intent intent = new Intent(MainActivity.this, ClockActivity.class); // Navigate to the clock page after login
+            Intent intent = new Intent(MainActivity.this, HomeActivity.class); // Navigate to the clock page after login
             startActivity(intent);
             finish(); // Prevent navigating back to login
             return;
@@ -42,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
         etLoginPassword = findViewById(R.id.etLoginPassword);
         btnLogin = findViewById(R.id.btnLogin);
         btnGoToRegister = findViewById(R.id.btnRegister);
+        btnForgotPassword = findViewById(R.id.btnForgotPassword);
 
         // Login button click handler
         btnLogin.setOnClickListener(view -> {
@@ -64,8 +65,8 @@ public class MainActivity extends AppCompatActivity {
             fbAuth.signInWithEmailAndPassword(email, password)
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
-                            // Navigate to ClockActivity on successful login
-                            Intent intent = new Intent(MainActivity.this, ClockActivity.class);
+                            // Navigate to HomeActivity on successful login
+                            Intent intent = new Intent(MainActivity.this, HomeActivity.class);
                             startActivity(intent);
                             finish(); // Close the login page
                         } else {
@@ -81,5 +82,26 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(MainActivity.this, RegisterActivity.class);
             startActivity(intent);
         });
+
+        // Forgot Password button click handler
+        btnForgotPassword.setOnClickListener(view -> resetPassword());
+    }
+
+    private void resetPassword() {
+        String email = etLoginEmail.getText().toString().trim();
+
+        if (email.isEmpty()) {
+            Toast.makeText(MainActivity.this, "Enter your email to reset password", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        fbAuth.sendPasswordResetEmail(email)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Toast.makeText(MainActivity.this, "Reset link sent to your email", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(MainActivity.this, "Error: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                });
     }
 }

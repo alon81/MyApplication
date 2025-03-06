@@ -6,7 +6,7 @@
     android:background="#121212"
     android:padding="32dp">
 
-    <!-- Email input field -->
+    <!-- Email -->
     <EditText
         android:id="@+id/etLoginEmail"
         android:layout_width="match_parent"
@@ -19,7 +19,7 @@
         android:layout_marginBottom="16dp"
         android:layout_gravity="center" />
 
-    <!-- Password input field -->
+    <!-- Password -->
     <EditText
         android:id="@+id/etLoginPassword"
         android:layout_width="match_parent"
@@ -33,7 +33,7 @@
         android:layout_marginBottom="32dp"
         android:layout_gravity="center" />
 
-    <!-- Login Button -->
+    <!-- Login  -->
     <Button
         android:id="@+id/btnLogin"
         android:layout_width="match_parent"
@@ -45,16 +45,39 @@
         android:textSize="18sp"
         android:layout_marginBottom="16dp" />
 
-    <!-- Register Button -->
-    <Button
-        android:id="@+id/btnRegister"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Register"
-        android:textColor="#003366"
-        android:backgroundTint="@android:color/transparent"
-        android:padding="16dp"
-        android:textSize="16sp"
+        android:orientation="horizontal"
+        android:gravity="center"
         android:layout_marginTop="16dp"
-        android:layout_gravity="center" />
+        android:layout_marginBottom="16dp">
+
+        <!-- Forgot Pass -->
+        <Button
+            android:id="@+id/btnForgotPassword"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Forgot Password?"
+            android:textColor="#003366"
+            android:backgroundTint="#121212"
+            android:padding="10dp"
+            android:textSize="14sp"
+            android:layout_marginEnd="8dp"/>
+
+        <!-- Register  -->
+        <Button
+            android:id="@+id/btnRegister"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Register"
+            android:textColor="#003366"
+            android:backgroundTint="#121212"
+            android:padding="10dp"
+            android:textSize="14sp"
+            android:layout_marginStart="8dp"/>
+    </LinearLayout>
+
 </LinearLayout>
