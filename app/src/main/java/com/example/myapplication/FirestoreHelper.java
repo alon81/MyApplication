@@ -8,6 +8,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class FirestoreHelper {
@@ -21,86 +22,87 @@ public class FirestoreHelper {
     }
 
     // Load followed domains from Firestore for the current user
-    public void loadFollowedDomains(OnFollowedDomainsLoadedListener listener) {
+    // Load followed sources from Firestore for the current user
+    public void loadFollowedSources(OnFollowedSourcesLoadedListener listener) {
         String userId = auth.getCurrentUser().getUid(); // Get the current user's ID
-        db.collection("users")
+        db.collection("user")
                 .document(userId)
-                .collection("followedDomains")
+                .collection("followedSources")
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        List<String> followedDomains = new ArrayList<>();
+                        List<String> followedSources = new ArrayList<>();
                         for (QueryDocumentSnapshot document : task.getResult()) {
-                            followedDomains.add(document.getString("domain"));
+                            followedSources.add(document.getString("source"));
                         }
-                        listener.onFollowedDomainsLoaded(followedDomains);
+                        listener.onFollowedSourcesLoaded(followedSources);
                     } else {
-                        listener.onFollowedDomainsLoaded(new ArrayList<>());
+                        listener.onFollowedSourcesLoaded(new ArrayList<>());
                     }
                 });
     }
 
-    // Add a new followed domain for the current user
-    public void addFollowedDomain(String domain) {
+    // Add a new followed source for the current user
+    public void addFollowedSource(String source) {
         String userId = auth.getCurrentUser().getUid(); // Get the current user's ID
 
-        // Check if the domain is already followed by this user
-        db.collection("users")
-                .document(userId)
-                .collection("followedDomains")
-                .whereEqualTo("domain", domain)
+        // Check if the source is already followed by this user
+        db.collection("user")
+                .document(userId)  // Using the user's UID
+                .collection("followedSources")
+                .whereEqualTo("source", source)
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && task.getResult().isEmpty()) {
-                        // If the domain is not already followed, add it
-                        db.collection("users")
+                        // If the source is not already followed, add it
+                        db.collection("user")
                                 .document(userId)
-                                .collection("followedDomains")
-                                .add(new java.util.HashMap<String, Object>() {{
-                                    put("domain", domain); // Store domain as a string
+                                .collection("followedSources")
+                                .add(new HashMap<String, Object>() {{
+                                    put("source", source); // Store source as a string
                                 }})
                                 .addOnSuccessListener(documentReference -> {
-                                    Log.d("FirestoreHelper", "Domain added: " + domain);
+                                    Log.d("FirestoreHelper", "Source added: " + source);
                                 })
                                 .addOnFailureListener(e -> {
-                                    Log.w("FirestoreHelper", "Error adding domain: ", e);
+                                    Log.w("FirestoreHelper", "Error adding source: ", e);
                                 });
                     } else {
-                        // If the domain is already followed, log a message or show a toast
-                        Log.d("FirestoreHelper", "Domain already followed: " + domain);
+                        // If the source is already followed, log a message or show a toast
+                        Log.d("FirestoreHelper", "Source already followed: " + source);
                     }
                 });
     }
 
-    // Remove a followed domain from Firestore for the current user
-    public void removeFollowedDomain(String domain) {
+    // Remove a followed source from Firestore for the current user
+    public void removeFollowedSource(String source) {
         String userId = auth.getCurrentUser().getUid(); // Get the current user's ID
 
-        db.collection("users")
-                .document(userId)
-                .collection("followedDomains")
-                .whereEqualTo("domain", domain)
+        db.collection("user")
+                .document(userId)  // Using the user's UID
+                .collection("followedSources")
+                .whereEqualTo("source", source)
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && !task.getResult().isEmpty()) {
                         String documentId = task.getResult().getDocuments().get(0).getId();
-                        db.collection("users")
-                                .document(userId)
-                                .collection("followedDomains")
+                        db.collection("user")
+                                .document(userId)  // Using the user's UID
+                                .collection("followedSources")
                                 .document(documentId)
                                 .delete()
                                 .addOnSuccessListener(aVoid -> {
-                                    Log.d("FirestoreHelper", "Domain removed: " + domain);
+                                    Log.d("FirestoreHelper", "Source removed: " + source);
                                 })
                                 .addOnFailureListener(e -> {
-                                    Log.w("FirestoreHelper", "Error removing domain: ", e);
+                                    Log.w("FirestoreHelper", "Error removing source: ", e);
                                 });
                     }
                 });
     }
 
-    // Interface for callback when followed domains are loaded
-    public interface OnFollowedDomainsLoadedListener {
-        void onFollowedDomainsLoaded(List<String> followedDomains);
+    // Interface for callback when followed sources are loaded
+    public interface OnFollowedSourcesLoadedListener {
+        void onFollowedSourcesLoaded(List<String> followedSources);
     }
 }

@@ -21,6 +21,12 @@ public interface IApiService {
 
     @GET("v2/top-headlines")
     Call<NewsResponse> getArticles(@QueryMap Map<String, String> options);
+    @GET("v2/everything")
+    Call<NewsResponse> getArticlesByDomains(
+            @Query("domains") String domains,
+            @Query("apiKey") String apiKey
+    );
+
 }
 
 

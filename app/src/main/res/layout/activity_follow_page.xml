@@ -18,25 +18,25 @@
         android:visibility="gone"
         android:layout_gravity="center" />
 
-    <!-- EditText to enter the domain name -->
+    <!-- EditText to enter the source name -->
     <EditText
-        android:id="@+id/editTextDomainName"
+        android:id="@+id/editTextSourceName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Enter domain name"
+        android:hint="Enter source name"
         android:inputType="text"
         android:minHeight="48dp" />
 
-    <!-- Button to add domain to favorites -->
+    <!-- Button to add source to favorites -->
     <Button
-        android:id="@+id/buttonAddDomain"
+        android:id="@+id/buttonAddSource"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Add to Favorites"
-        android:onClick="onAddDomainButtonClicked" />
+        android:onClick="onAddSourceButtonClicked" />
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvFollowedDomains"
+        android:id="@+id/rvFollowedSources"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 

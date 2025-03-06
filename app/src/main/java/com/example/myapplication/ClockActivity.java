@@ -12,6 +12,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -23,12 +24,9 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class ClockActivity extends AppCompatActivity {
 
@@ -65,93 +63,61 @@ public class ClockActivity extends AppCompatActivity {
         newsRepository = new NewsRepository();
 
         // Set up RecyclerView
-        recyclerViewArticles.setLayoutManager(new LinearLayoutManager(this));
+        recyclerViewArticles.setLayoutManager(new LinearLayoutManager(this)); // Layout Manager for vertical list
+        recyclerViewArticles.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL)); // Optional: Adds item dividers
+
+        // Add padding at the bottom of RecyclerView to prevent last item from getting cut off
+        recyclerViewArticles.setPadding(0, 0, 0, (int) (100 * getResources().getDisplayMetrics().density)); // 100dp padding at the bottom (adjust as needed)
+
         newsAdapter = new NewsAdapter(new ArrayList<>());
         recyclerViewArticles.setAdapter(newsAdapter);
 
-        // Display greeting message, start clock update, and fetch user preferences
+        // Display greeting message, start clock update, and fetch articles
         displayUserGreeting();
         updateClock();
-        fetchFollowedDomains();  // Call the new method to fetch followed domains
+        fetchArticlesFromFollowedSources(); // Fetch articles from followed domains
     }
 
-    private void fetchFollowedDomains() {
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user == null) {
-            Log.d("ClockActivity", "User not authenticated");
-            return;
-        }
-        String userId = user.getUid();
-
-        // Corrected the collection name from "user" to "users" based on your Firestore structure
-        FirebaseFirestore.getInstance().collection("users").document(userId)
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        List<String> followedDomains = (List<String>) documentSnapshot.get("followedDomains");
-                        Log.d("ClockActivity", "Raw Firestore Data: " + documentSnapshot.getData());
-                        if (followedDomains == null || followedDomains.isEmpty()) {
-                            Log.d("ClockActivity", "No domains found for this user.");
-                            // Optionally show a message to the user
-                            showNoFollowedDomainsMessage();
-                        } else {
-                            Log.d("ClockActivity", "Followed Domains: " + followedDomains);
-                            fetchArticlesFromDomains(followedDomains);  // Fetch articles if domains exist
-                        }
-                    } else {
-                        Log.d("ClockActivity", "Document does not exist for user: " + userId);
-                        // Handle case where user document is missing
-                        showNoFollowedDomainsMessage();
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e("ClockActivity", "Error fetching domains", e);
-                    // Optionally show error to user
-                    showErrorMessage();
-                });
-    }
-
-    private void showNoFollowedDomainsMessage() {
-        // Display a message to the user if they have no followed domains
-        Toast.makeText(ClockActivity.this, "You have no followed news sources.", Toast.LENGTH_SHORT).show();
-    }
-
-    private void showErrorMessage() {
-        // Display a message to the user in case of an error fetching the domains
-        Toast.makeText(ClockActivity.this, "Failed to load your followed news sources.", Toast.LENGTH_SHORT).show();
-    }
-
-    private void fetchArticlesFromDomains(List<String> followedDomains) {
-        String domainQuery = String.join(",", followedDomains);
-        fetchArticles(domainQuery);
-    }
-
-    private void fetchArticles(String domains) {
-        Log.d(TAG, "Fetching articles for domains: " + domains); // Log the requested domains
-
-        newsRepository.getArticlesByDomains(domains, "publishedAt", new ApiCallBack<NewsResponse>() {
+    /**
+     * Fetch articles from followed domains using the NewsRepository.
+     */
+    private void fetchArticlesFromFollowedSources() {
+        // Fetch the articles from the followed sources without any date filtering
+        newsRepository.getArticlesByFollowedSources("publishedAt", new ApiCallBack<NewsResponse>() {
             @Override
             public void OnSucces(NewsResponse response) {
-                if (response != null) {
-                    Log.d(TAG, "API Response: " + response.toString()); // Log full API response
-
+                if (response != null && response.getArticles() != null && !response.getArticles().isEmpty()) {
                     List<Article> articles = response.getArticles();
-                    if (articles != null && !articles.isEmpty()) {
-                        Log.d(TAG, "Fetched " + articles.size() + " articles.");
-                        newsAdapter.updateArticles(articles); // Update adapter with articles
-                    } else {
-                        Log.d(TAG, "No articles found for the given domains.");
-                    }
+                    Log.d(TAG, "Fetched " + articles.size() + " articles.");
+                    newsAdapter.updateArticles(articles);
                 } else {
-                    Log.e(TAG, "Error: API returned null response.");
+                    Log.d(TAG, "No articles found for the followed sources.");
+                    showNoFollowedSourcesMessage();
                 }
             }
 
             @Override
             public void OnFail() {
-                Log.e(TAG, "Error fetching articles from the API.");
+                Log.e(TAG, "Error fetching articles from followed sources.");
+                showErrorMessage();
             }
         });
+    }
+
+
+
+    /**
+     * Show a message if no followed sources are found.
+     */
+    private void showNoFollowedSourcesMessage() {
+        Toast.makeText(ClockActivity.this, "You have no followed news sources.", Toast.LENGTH_SHORT).show();
+    }
+
+    /**
+     * Show a generic error message if something goes wrong.
+     */
+    private void showErrorMessage() {
+        Toast.makeText(ClockActivity.this, "Failed to load your news sources.", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -159,7 +125,6 @@ public class ClockActivity extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.menu, menu);
         return true;
     }
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.menu_clock) {
@@ -180,27 +145,35 @@ public class ClockActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * Display a greeting message with the user's name.
+     */
     private void displayUserGreeting() {
-        String userId = fbAuth.getCurrentUser() != null ? fbAuth.getCurrentUser().getUid() : null;
-        if (userId != null) {
-            DocumentReference userRef = db.collection("user").document(userId);
-            userRef.get().addOnCompleteListener(task -> {
-                if (task.isSuccessful() && task.getResult() != null) {
-                    String firstName = task.getResult().getString("firstName");
-                    String lastName = task.getResult().getString("lastName");
-                    txtGreeting.setText(firstName != null && lastName != null
-                            ? "Hello " + firstName + " " + lastName
-                            : "Hello User!");
-                } else {
-                    Toast.makeText(this, "Error fetching user data", Toast.LENGTH_SHORT).show();
-                }
-            });
-        } else {
+        FirebaseUser currentUser = fbAuth.getCurrentUser();
+        if (currentUser == null) {
             Log.e(TAG, "No user is logged in.");
-            // Handle no user logged in case (maybe redirect to login screen)
+            return;
         }
+
+        String userId = currentUser.getUid();
+        DocumentReference userRef = db.collection("user").document(userId);
+
+        userRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful() && task.getResult() != null) {
+                String firstName = task.getResult().getString("firstName");
+                String lastName = task.getResult().getString("lastName");
+                txtGreeting.setText((firstName != null && lastName != null) ?
+                        "Hello " + firstName + " " + lastName : "Hello User!");
+            } else {
+                Log.e(TAG, "Error fetching user data", task.getException());
+                Toast.makeText(this, "Error fetching user data.", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
+    /**
+     * Continuously update the clock display in real time.
+     */
     private void updateClock() {
         clockHandler.postDelayed(new Runnable() {
             @Override
@@ -208,31 +181,34 @@ public class ClockActivity extends AppCompatActivity {
                 Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Jerusalem"));
                 SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
                 txtClock.setText(timeFormat.format(calendar.getTime()));
-                updateBackground(calendar.get(Calendar.HOUR_OF_DAY));
-                clockHandler.postDelayed(this, 1000);
+                updateBackground(calendar.get(Calendar.HOUR_OF_DAY)); // Adjust background based on the time of day
+                clockHandler.postDelayed(this, 1000); // Continue updating every second
             }
         }, 0);
     }
 
+    /**
+     * Update the background image based on the time of day.
+     */
     private void updateBackground(int hourOfDay) {
         if (hourOfDay >= 7 && hourOfDay < 15) {
-            imgBackground.setImageResource(R.drawable.morning_image);
+            imgBackground.setImageResource(R.drawable.morning_image); // Morning image
         } else if (hourOfDay >= 15 && hourOfDay < 19) {
-            imgBackground.setImageResource(R.drawable.afternoon_image);
+            imgBackground.setImageResource(R.drawable.afternoon_image); // Afternoon image
         } else {
-            imgBackground.setImageResource(R.drawable.night_image);
+            imgBackground.setImageResource(R.drawable.night_image); // Night image
         }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        fetchFollowedDomains(); // Ensure fetching followed domains every time the activity is resumed
+        fetchArticlesFromFollowedSources(); // Refresh articles when returning to this activity
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        clockHandler.removeCallbacksAndMessages(null); // Ensure we stop the clock updates when the activity is destroyed
+        clockHandler.removeCallbacksAndMessages(null); // Stop clock updates when activity is destroyed
     }
 }

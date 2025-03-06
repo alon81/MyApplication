@@ -18,18 +18,17 @@ import androidx.appcompat.widget.Toolbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.util.List;
-
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+
 public class FollowPageActivity extends AppCompatActivity {
 
-    private RecyclerView rvFollowedDomains;
+    private RecyclerView rvFollowedSources;
     private FollowedAdapter followedAdapter;
     private ProgressBar progressBar;
     private FirestoreHelper firestoreHelper;
-    private EditText editTextDomainName;
+    private EditText editTextSourceName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,18 +44,18 @@ public class FollowPageActivity extends AppCompatActivity {
         }
 
         // Initialize views and helpers
-        rvFollowedDomains = findViewById(R.id.rvFollowedDomains);
+        rvFollowedSources = findViewById(R.id.rvFollowedSources);
         progressBar = findViewById(R.id.progressBar);
-        editTextDomainName = findViewById(R.id.editTextDomainName);
+        editTextSourceName = findViewById(R.id.editTextSourceName);
         firestoreHelper = new FirestoreHelper(this);
 
         // Set up RecyclerView
-        rvFollowedDomains.setLayoutManager(new LinearLayoutManager(this));
+        rvFollowedSources.setLayoutManager(new LinearLayoutManager(this));
         followedAdapter = new FollowedAdapter(this, firestoreHelper);
-        rvFollowedDomains.setAdapter(followedAdapter);
+        rvFollowedSources.setAdapter(followedAdapter);
 
         // Load followed news sources from Firestore
-        loadFollowedDomains();
+        loadFollowedSources();
     }
 
     @Override
@@ -66,72 +65,71 @@ public class FollowPageActivity extends AppCompatActivity {
     }
 
     // Load followed news sources from Firestore
-    private void loadFollowedDomains() {
+    private void loadFollowedSources() {
         progressBar.setVisibility(View.VISIBLE);
-        firestoreHelper.loadFollowedDomains(followedSources -> {
+        firestoreHelper.loadFollowedSources(followedSources -> {
             progressBar.setVisibility(View.GONE);
             if (followedSources.isEmpty()) {
-                Toast.makeText(this, "No followed domains yet!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "No followed sources yet!", Toast.LENGTH_SHORT).show();
             }
             followedAdapter.setSources(followedSources);
         });
     }
 
-    // Add domain to favorites when button is clicked
-    public void onAddDomainButtonClicked(View view) {
-        String domainName = editTextDomainName.getText().toString().trim();
+    // Add source to favorites when button is clicked
+    public void onAddSourceButtonClicked(View view) {
+        String sourceName = editTextSourceName.getText().toString().trim();
 
-        if (domainName.isEmpty()) {
-            Toast.makeText(this, "Please enter a domain name.", Toast.LENGTH_SHORT).show();
+        if (sourceName.isEmpty()) {
+            Toast.makeText(this, "Please enter a source name.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Check if the domain is supported by NewsAPI before adding it
-        checkIfDomainIsSupported(domainName);
+        // Check if the source is supported by NewsAPI before adding it
+        checkIfSourceIsSupported(sourceName);
     }
 
-    // Check if the domain is supported by NewsAPI
-    private void checkIfDomainIsSupported(final String domainName) {
-        // Use the existing NewsRepository to fetch sources
+    // Check if the source is supported by NewsAPI
+    private void checkIfSourceIsSupported(final String sourceName) {
         NewsRepository newsRepository = new NewsRepository();  // Create an instance
         newsRepository.getSources(new Callback<SourcesResponse>() {
             @Override
             public void onResponse(Call<SourcesResponse> call, Response<SourcesResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    boolean isDomainValid = false;
+                    boolean isSourceValid = false;
                     SourcesResponse sourcesResponse = response.body();
 
-                    // Check if the entered domain exists in the response list of sources
+                    // Check if the entered source exists in the response list of sources
                     for (Source source : sourcesResponse.getSources()) {
-                        if (source.getUrl().contains(domainName)) {
-                            isDomainValid = true;
+                        if (source.getUrl().contains(sourceName)) {
+                            isSourceValid = true;
                             break;
                         }
                     }
 
-                    // If domain is valid, check if it is already followed by the user
-                    if (isDomainValid) {
+                    // If source is valid, check if it is already followed by the user
+                    if (isSourceValid) {
                         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
                         FirebaseFirestore.getInstance()
-                                .collection("users")
-                                .document(userId)
-                                .collection("followedDomains")
-                                .document(domainName)
+                                .collection("user")
+                                .document(userId)  // Using the user's UID
+                                .collection("followedSources")
+                                .document(sourceName)  // Use source as document reference
                                 .get()
                                 .addOnCompleteListener(task -> {
                                     if (task.isSuccessful() && !task.getResult().exists()) {
-                                        // If domain is not already followed, add it
-                                        firestoreHelper.addFollowedDomain(domainName);
-                                        Toast.makeText(FollowPageActivity.this, domainName + " added to favorites!", Toast.LENGTH_SHORT).show();
-                                        loadFollowedDomains(); // Reload followed domains
-                                        editTextDomainName.setText(""); // Clear input field
+                                        // If source is not already followed, add it
+                                        firestoreHelper.addFollowedSource(sourceName);
+                                        Toast.makeText(FollowPageActivity.this, sourceName + " added to favorites!", Toast.LENGTH_SHORT).show();
+                                        loadFollowedSources(); // Reload followed sources
+                                        editTextSourceName.setText(""); // Clear input field
                                     } else {
-                                        // If domain is already followed, show a message
-                                        Toast.makeText(FollowPageActivity.this, domainName + " is already followed!", Toast.LENGTH_SHORT).show();
+                                        // If source is already followed, show a message
+                                        Toast.makeText(FollowPageActivity.this, sourceName + " is already followed!", Toast.LENGTH_SHORT).show();
                                     }
                                 });
                     } else {
-                        Toast.makeText(FollowPageActivity.this, "Domain is not supported by the API.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(FollowPageActivity.this, "Source is not supported by the API.", Toast.LENGTH_SHORT).show();
                     }
                 } else {
                     Toast.makeText(FollowPageActivity.this, "Error fetching sources.", Toast.LENGTH_SHORT).show();
@@ -174,7 +172,4 @@ public class FollowPageActivity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
-
-
-
 }

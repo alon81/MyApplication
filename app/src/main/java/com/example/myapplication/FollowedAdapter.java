@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.myapplication.R;
 import com.example.myapplication.FirestoreHelper;
 import java.util.List;
+
 public class FollowedAdapter extends RecyclerView.Adapter<FollowedAdapter.ViewHolder> {
 
     private Context context;
@@ -31,7 +32,7 @@ public class FollowedAdapter extends RecyclerView.Adapter<FollowedAdapter.ViewHo
     public void onBindViewHolder(ViewHolder holder, int position) {
         String source = sources.get(position);
         holder.sourceName.setText(source);
-        holder.unfollowButton.setOnClickListener(v -> unfollowDomain(source));
+        holder.unfollowButton.setOnClickListener(v -> unfollowSource(source)); // Changed to "unfollowSource"
     }
 
     @Override
@@ -44,9 +45,9 @@ public class FollowedAdapter extends RecyclerView.Adapter<FollowedAdapter.ViewHo
         notifyDataSetChanged();
     }
 
-    private void unfollowDomain(String domain) {
-        firestoreHelper.removeFollowedDomain(domain); // Call FirestoreHelper to remove the domain
-        sources.remove(domain); // Remove domain from the list locally
+    private void unfollowSource(String source) { // Changed to "unfollowSource"
+        firestoreHelper.removeFollowedSource(source); // Call FirestoreHelper to remove the source
+        sources.remove(source); // Remove source from the list locally
         notifyDataSetChanged(); // Update the RecyclerView
     }
 
