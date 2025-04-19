@@ -1,0 +1,33 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#121212"
+    android:padding="20dp"
+    android:gravity="center">
+
+    <!-- Close Button at the top-left -->
+    <Button
+        android:id="@+id/btnClosePopup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Close"
+        android:textColor="#FFFFFF"
+        android:background="@android:color/transparent"
+        android:layout_gravity="start"
+        android:textSize="16sp"
+        android:layout_marginBottom="12dp"
+        android:layout_marginStart="10dp"/>
+
+    <!-- RecyclerView for the list of favorited articles -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewFavorites"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="16dp"
+        android:background="#121212"
+        android:divider="#003366"
+        android:dividerHeight="1dp"
+        android:layout_weight="1"/>
+
+</LinearLayout>

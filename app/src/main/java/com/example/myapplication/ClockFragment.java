@@ -3,6 +3,7 @@ package com.example.myapplication;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -27,15 +28,19 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 import java.util.TimeZone;
 
 public class ClockFragment extends Fragment {
+
+    private List<String> favoriteUrls = new ArrayList<>();
 
     private TextView txtClock, txtGreeting;
     private ImageView imgBackground;
@@ -45,13 +50,13 @@ public class ClockFragment extends Fragment {
     private FirebaseFirestore db;
     private final Handler clockHandler = new Handler();
     private NewsRepository newsRepository;
+    private TextToSpeech textToSpeech;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_clock, container, false);
         Toolbar toolbar = view.findViewById(R.id.toolbar);
         ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
-
 
         setHasOptionsMenu(true);
 
@@ -63,13 +68,31 @@ public class ClockFragment extends Fragment {
         fbAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
+
+
         newsRepository = new NewsRepository();
 
         recyclerViewArticles.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerViewArticles.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
 
-        newsAdapter = new NewsAdapter(new ArrayList<>());
+        newsAdapter = new NewsAdapter(new ArrayList<>(),getContext());
         recyclerViewArticles.setAdapter(newsAdapter);
+
+        // Initialize Text-to-Speech
+        textToSpeech = new TextToSpeech(getContext(), status -> {
+            if (status == TextToSpeech.SUCCESS) {
+                int langResult = textToSpeech.setLanguage(Locale.US);
+                if (langResult == TextToSpeech.LANG_MISSING_DATA ||
+                        langResult == TextToSpeech.LANG_NOT_SUPPORTED) {
+                    Log.e("TextToSpeech", "Language not supported or missing data.");
+                }
+            } else {
+                Log.e("TextToSpeech", "Initialization failed.");
+            }
+        });
+
+        // Set Text-to-Speech for news adapter
+        newsAdapter.setTextToSpeech(textToSpeech);
 
         // Display greeting message, start clock update, and fetch articles
         displayUserGreeting();
@@ -79,14 +102,14 @@ public class ClockFragment extends Fragment {
         return view;
     }
 
-    // takes from api
+    // Fetch articles from followed sources
     private void fetchArticlesFromFollowedSources() {
         newsRepository.getArticlesByFollowedSources("publishedAt", new ApiCallBack<NewsResponse>() {
             @Override
             public void OnSucces(NewsResponse response) {
                 if (response != null && response.getArticles() != null && !response.getArticles().isEmpty()) {
                     List<Article> articles = response.getArticles();
-                    newsAdapter.updateArticles(articles);
+                    loadFavoriteArticles(articles);  // Fetch favorites and update the adapter
                 } else {
                     showNoFollowedSourcesMessage();
                 }
@@ -99,6 +122,42 @@ public class ClockFragment extends Fragment {
         });
     }
 
+    // Fetch the user's favorite articles and update the adapter
+    private void loadFavoriteArticles(List<Article> allArticles) {
+        FirebaseFirestore.getInstance().collection("user")
+                .document(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                .collection("favorites")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (queryDocumentSnapshots != null) {
+                        favoriteUrls.clear();  // Clear existing data
+                        for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
+                            String url = documentSnapshot.getString("url");
+                            if (url != null) {
+                                favoriteUrls.add(url);  // Add the URL to the favorite list
+                            }
+                        }
+                        // Now that favorites are loaded, update the articles
+                        updateArticlesWithFavorites(allArticles);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("ClockFragment", "Error loading favorites", e);
+                });
+    }
+
+
+
+    // Update the articles in the adapter, after loading favorites
+    private void updateArticlesWithFavorites(List<Article> articles) {
+        for (Article article : articles) {
+            boolean isFavorited = favoriteUrls.contains(article.getUrl());
+            article.setFavorited(isFavorited);
+        }
+        newsAdapter.updateArticles(articles);  // Update the adapter to reflect the new favorite state
+    }
+
+
     private void showNoFollowedSourcesMessage() {
         Toast.makeText(getContext(), "You have no followed news sources.", Toast.LENGTH_SHORT).show();
     }
@@ -106,7 +165,7 @@ public class ClockFragment extends Fragment {
     private void showErrorMessage() {
         Toast.makeText(getContext(), "Failed to load your news sources.", Toast.LENGTH_SHORT).show();
     }
-// user messege
+
     private void displayUserGreeting() {
         FirebaseUser currentUser = fbAuth.getCurrentUser();
         if (currentUser == null) {
@@ -120,7 +179,6 @@ public class ClockFragment extends Fragment {
             if (task.isSuccessful() && task.getResult() != null) {
                 String firstName = task.getResult().getString("firstName");
                 String lastName = task.getResult().getString("lastName");
-
 
                 int hourOfDay = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
 
@@ -137,8 +195,6 @@ public class ClockFragment extends Fragment {
             }
         });
     }
-
-
 
     private void updateClock() {
         clockHandler.postDelayed(new Runnable() {
@@ -157,7 +213,7 @@ public class ClockFragment extends Fragment {
         }, 0);
     }
 
-    // background based on the time of day
+    // Update background based on the time of day
     private void updateBackground(int hourOfDay) {
         if (hourOfDay >= 6 && hourOfDay < 12) {
             imgBackground.setImageResource(R.drawable.morning_image);
@@ -168,11 +224,14 @@ public class ClockFragment extends Fragment {
         }
     }
 
-
     @Override
     public void onDestroy() {
         super.onDestroy();
         clockHandler.removeCallbacksAndMessages(null);
+        if (textToSpeech != null) {
+            textToSpeech.stop();
+            textToSpeech.shutdown();
+        }
     }
 
     @Override
@@ -180,7 +239,8 @@ public class ClockFragment extends Fragment {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.menu, menu);
     }
-    //menu
+
+    // Handle menu options
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         Log.d("ClockFragment", "Menu item selected: " + item.getItemId());
@@ -212,5 +272,4 @@ public class ClockFragment extends Fragment {
             transaction.commit();
         }
     }
-
 }

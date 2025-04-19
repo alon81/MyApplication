@@ -9,6 +9,16 @@ class Article {
     private String urlToImage;
     private String publishedAt;
     private String content;
+    private boolean isFavorited;
+
+    // Getter and Setter for isFavorited
+    public boolean isFavorited() {
+        return isFavorited;
+    }
+
+    public void setFavorited(boolean isFavorited) {
+        this.isFavorited = isFavorited;
+    }
 public Article (){}
     public Source getSource() { return source; }
     public void setSource(Source source) { this.source = source; }
