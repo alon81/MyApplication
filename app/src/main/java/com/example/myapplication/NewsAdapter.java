@@ -6,6 +6,7 @@ import static androidx.core.content.ContextCompat.startActivity;
 import static java.security.AccessController.getContext;
 
 import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
@@ -27,6 +28,7 @@ import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHolder> {
@@ -69,12 +71,26 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHol
                 v.getContext().startActivity(intent);
             });
 
-            // Text-to-Speech functionality
             holder.titleTextView.setOnClickListener(v -> {
                 if (textToSpeech != null) {
-                    textToSpeech.speak(article.getTitle(), TextToSpeech.QUEUE_FLUSH, null, null);
+                    String title = article.getTitle();
+
+                    // Detect Hebrew (basic check based on Unicode range)
+                    boolean isHebrew = title.matches(".*\\p{InHebrew}.*");
+
+                    // Set language accordingly
+                    Locale targetLocale = isHebrew ? new Locale("he") : Locale.US;
+                    int result = textToSpeech.setLanguage(targetLocale);
+
+                    if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                        Toast.makeText(context, "Selected language not supported on this device.", Toast.LENGTH_SHORT).show();
+                    } else {
+                        textToSpeech.speak(title, TextToSpeech.QUEUE_FLUSH, null, null);
+                    }
                 }
             });
+
+
 
             // Star icon: toggle favorite state
             boolean isFavorited = article.isFavorited();  // Check the favorited state from the Article object
@@ -95,8 +111,8 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHol
             });
 
             // Email button to send the article via email
-            holder.sendEmailButton.setOnClickListener(v -> {
-                showEmailDialog(article);
+            holder.shareButton.setOnClickListener(v -> {
+                shareArticle(article);
             });
         }
     }
@@ -105,68 +121,22 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHol
     // Method to show the email dialog
     // Method to show the email dialog
     // Method to show the email dialog
-    private void showEmailDialog(Article article) {
-        // Inflate your custom layout directly from XML
-        LayoutInflater inflater = LayoutInflater.from(context);
-        View dialogView = inflater.inflate(R.layout.custom_email_dialog, null);
+    private void shareArticle(Article article) {
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("text/plain");
 
-        // Get reference to the EditText and Send button in the custom layout
-        EditText emailEditText = dialogView.findViewById(R.id.emailEditText);
-        Button sendButton = dialogView.findViewById(R.id.sendButton);
+        String shareMessage = "Check out this article:\n" +
+                article.getTitle() + "\n" + article.getUrl();
 
-        // Build the AlertDialog with the custom layout
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setView(dialogView);  // Set the custom XML view here
-
-        // Remove the default title by setting a null title (no title bar)
-        builder.setTitle(null);
-
-        // Set the Send button click listener
-        sendButton.setOnClickListener(v -> {
-            String email = emailEditText.getText().toString().trim();
-            if (!email.isEmpty()) {
-                if (isValidEmail(email)) {
-                    sendEmail(email, article);  // Call the send email method
-                } else {
-                    Toast.makeText(context, "Invalid email format.", Toast.LENGTH_SHORT).show();
-                }
-            } else {
-                Toast.makeText(context, "Please enter an email address.", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        // Show the dialog without a cancel button or title
-        builder.create().show();
-    }
-
-
-
-
-    // Method to validate email format
-    private boolean isValidEmail(String email) {
-        // Regular expression for valid email format
-        String emailPattern = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
-        return email.matches(emailPattern);
-    }
-
-
-    // Method to send the email
-    // Method to send the email
-    private void sendEmail(String recipientEmail, Article article) {
-        Intent emailIntent = new Intent(Intent.ACTION_SENDTO);
-        emailIntent.setData(Uri.parse("mailto:"));  // Only email apps should handle this
-
-        // Set the email recipient, subject, and body
-        emailIntent.putExtra(Intent.EXTRA_EMAIL, new String[]{recipientEmail});
-        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Check out this article: " + article.getTitle());
-        emailIntent.putExtra(Intent.EXTRA_TEXT, "Here's an interesting article:\n\n" + article.getTitle() + "\n" + article.getUrl());
+        shareIntent.putExtra(Intent.EXTRA_TEXT, shareMessage);
 
         try {
-            context.startActivity(Intent.createChooser(emailIntent, "Send email..."));
-        } catch (android.content.ActivityNotFoundException ex) {
-            showToast("No email client installed");
+            context.startActivity(Intent.createChooser(shareIntent, "Share article via"));
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(context, "No app available to share the article.", Toast.LENGTH_SHORT).show();
         }
     }
+
 
 
     // Method to show the toast message
@@ -183,7 +153,7 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHol
     public static class ArticleViewHolder extends RecyclerView.ViewHolder {
 
         TextView titleTextView, sourceTextView, urlTextView;
-        ImageView starImageView, sendEmailButton;  // Add the button to send email
+        ImageView starImageView, shareButton;  // Add the button to send email
 
 
         public ArticleViewHolder(View itemView) {
@@ -192,7 +162,7 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHol
             sourceTextView = itemView.findViewById(R.id.txtArticleSource);
             urlTextView = itemView.findViewById(R.id.txtArticleUrl);
             starImageView = itemView.findViewById(R.id.imgFavoriteStar);
-            sendEmailButton = itemView.findViewById(R.id.imgSendEmail);  // Initialize the send email button
+            shareButton = itemView.findViewById(R.id.imgSendEmail);  // Initialize the send email button
         }
     }
 

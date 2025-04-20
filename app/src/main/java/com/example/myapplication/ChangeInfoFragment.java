@@ -1,6 +1,7 @@
 package com.example.myapplication;
 
 import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
@@ -70,15 +71,28 @@ public class ChangeInfoFragment extends Fragment {
         // Initialize Text-to-Speech
         textToSpeech = new TextToSpeech(getContext(), status -> {
             if (status == TextToSpeech.SUCCESS) {
+                // Set default to English first
                 int langResult = textToSpeech.setLanguage(Locale.US);
-                if (langResult == TextToSpeech.LANG_MISSING_DATA ||
-                        langResult == TextToSpeech.LANG_NOT_SUPPORTED) {
-                    Log.e("TextToSpeech", "Language not supported or missing data.");
+                if (langResult == TextToSpeech.LANG_MISSING_DATA || langResult == TextToSpeech.LANG_NOT_SUPPORTED) {
+                    Log.e("TextToSpeech", "English language not supported or missing data.");
                 }
+
+                // Try setting Hebrew
+                int hebrewResult = textToSpeech.setLanguage(new Locale("he"));
+                if (hebrewResult == TextToSpeech.LANG_MISSING_DATA || hebrewResult == TextToSpeech.LANG_NOT_SUPPORTED) {
+                    Log.e("TextToSpeech", "Hebrew language not supported or missing data.");
+
+                    // Prompt user to install Hebrew voice data
+                    Toast.makeText(getContext(), "Hebrew TTS data missing. Redirecting to install it...", Toast.LENGTH_LONG).show();
+                    Intent installIntent = new Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
+                    requireActivity().startActivity(installIntent);
+                }
+
             } else {
-                Log.e("TextToSpeech", "Initialization failed.");
+                Log.e("TextToSpeech", "TTS initialization failed.");
             }
         });
+
 
         // Check login
         if (fbAuth.getCurrentUser() != null) {
@@ -197,81 +211,48 @@ public class ChangeInfoFragment extends Fragment {
                 notifyItemRemoved(position);
             });
 
-            // Text-to-speech for article titles
-            holder.itemView.setOnClickListener(v -> {
+            holder.titleTextView.setOnClickListener(v -> {
                 if (textToSpeech != null) {
-                    textToSpeech.speak(article.getTitle(), TextToSpeech.QUEUE_FLUSH, null, null);
+                    String title = article.getTitle();
+
+                    // Detect Hebrew (basic check based on Unicode range)
+                    boolean isHebrew = title.matches(".*\\p{InHebrew}.*");
+
+                    // Set language accordingly
+                    Locale targetLocale = isHebrew ? new Locale("he") : Locale.US;
+                    int result = textToSpeech.setLanguage(targetLocale);
+
+                    if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                        Toast.makeText(getContext(), "Selected language not supported on this device.", Toast.LENGTH_SHORT).show();
+                    } else {
+                        textToSpeech.speak(title, TextToSpeech.QUEUE_FLUSH, null, null);
+                    }
                 }
             });
+
 
             // Arrow button to send the article via email
-            holder.sendEmailButton.setOnClickListener(v -> {
+            holder.shareButton.setOnClickListener(v -> {
                 // Show email sending dialog
-                showEmailDialog(article);
+                shareArticle(article);
             });
         }
 
-        private void showEmailDialog(Article article) {
-            // Create the dialog view directly from XML without the title at the top
-            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        private void shareArticle(Article article) {
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.setType("text/plain");
 
-            // Inflate the email dialog layout
-            LayoutInflater inflater = LayoutInflater.from(getContext());
-            View dialogView = inflater.inflate(R.layout.custom_email_dialog, null);
+            String shareMessage = "Check out this article:\n" +
+                    article.getTitle() + "\n" + article.getUrl();
 
-            // Find the email EditText and buttons in the XML layout
-            EditText emailEditText = dialogView.findViewById(R.id.emailEditText);
-            Button sendButton = dialogView.findViewById(R.id.sendButton);
-
-            // Remove the default title by setting a null title (if needed)
-            builder.setTitle(null);
-
-            // Set the custom view
-            builder.setView(dialogView);
-
-            // Handle the Send button click event
-            sendButton.setOnClickListener(v -> {
-                String email = emailEditText.getText().toString().trim();
-                if (!email.isEmpty()) {
-                    if (isValidEmail(email)) {
-                        sendEmail(email, article);
-                    } else {
-                        Toast.makeText(getContext(), "Invalid email format.", Toast.LENGTH_SHORT).show();
-                    }
-                } else {
-                    Toast.makeText(getContext(), "Please enter an email address.", Toast.LENGTH_SHORT).show();
-                }
-            });
-
-            // Show the dialog without a cancel button
-            builder.create().show();
-        }
-
-
-        // Helper method to validate email format
-        private boolean isValidEmail(String email) {
-            String emailPattern = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
-            return email.matches(emailPattern);
-        }
-
-
-        // Method to send the email
-        private void sendEmail(String recipientEmail, Article article) {
-            Intent emailIntent = new Intent(Intent.ACTION_SENDTO);
-            emailIntent.setData(Uri.parse("mailto:"));  // Only email apps should handle this
-
-            // Set the email recipient, subject, and body
-            emailIntent.putExtra(Intent.EXTRA_EMAIL, new String[]{recipientEmail});
-            emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Check out this article: " + article.getTitle());
-            emailIntent.putExtra(Intent.EXTRA_TEXT, "Here's an interesting article:\n\n" + article.getTitle() + "\n" + article.getUrl());
+            shareIntent.putExtra(Intent.EXTRA_TEXT, shareMessage);
 
             try {
-                startActivity(Intent.createChooser(emailIntent, "Send email..."));
-            } catch (android.content.ActivityNotFoundException ex) {
-                Toast.makeText(getContext(), "No email client installed.", Toast.LENGTH_SHORT).show();
+                getContext().startActivity(Intent.createChooser(shareIntent, "Share article via"));
+            } catch (ActivityNotFoundException e) {
+                Toast.makeText(getContext(), "No app available to share the article.", Toast.LENGTH_SHORT).show();
             }
         }
-
 
 
         @Override
@@ -283,7 +264,7 @@ public class ChangeInfoFragment extends Fragment {
 
 
             TextView titleTextView, sourceTextView, urlTextView;
-            ImageView starImageView, sendEmailButton;  // Add the button to send email
+            ImageView starImageView, shareButton;  // Add the button to send email
 
             public FavoriteViewHolder(View itemView) {
                 super(itemView);
@@ -291,7 +272,7 @@ public class ChangeInfoFragment extends Fragment {
                 sourceTextView = itemView.findViewById(R.id.txtArticleSource);
                 urlTextView = itemView.findViewById(R.id.txtArticleUrl);
                 starImageView = itemView.findViewById(R.id.imgFavoriteStar);
-                sendEmailButton = itemView.findViewById(R.id.imgSendEmail);  // Initialize the send email button
+                shareButton = itemView.findViewById(R.id.imgSendEmail);  // Initialize the send email button
             }
         }
 

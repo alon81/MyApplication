@@ -79,20 +79,35 @@ public class ClockFragment extends Fragment {
         recyclerViewArticles.setAdapter(newsAdapter);
 
         // Initialize Text-to-Speech
+        // Initialize Text-to-Speech
         textToSpeech = new TextToSpeech(getContext(), status -> {
             if (status == TextToSpeech.SUCCESS) {
+                // Set default to English first
                 int langResult = textToSpeech.setLanguage(Locale.US);
-                if (langResult == TextToSpeech.LANG_MISSING_DATA ||
-                        langResult == TextToSpeech.LANG_NOT_SUPPORTED) {
-                    Log.e("TextToSpeech", "Language not supported or missing data.");
+                if (langResult == TextToSpeech.LANG_MISSING_DATA || langResult == TextToSpeech.LANG_NOT_SUPPORTED) {
+                    Log.e("TextToSpeech", "English language not supported or missing data.");
                 }
+
+                // Try setting Hebrew
+                int hebrewResult = textToSpeech.setLanguage(new Locale("he"));
+                if (hebrewResult == TextToSpeech.LANG_MISSING_DATA || hebrewResult == TextToSpeech.LANG_NOT_SUPPORTED) {
+                    Log.e("TextToSpeech", "Hebrew language not supported or missing data.");
+
+                    // Prompt user to install Hebrew voice data
+                    Toast.makeText(getContext(), "Hebrew TTS data missing. Redirecting to install it...", Toast.LENGTH_LONG).show();
+                    Intent installIntent = new Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
+                    requireActivity().startActivity(installIntent);
+                }
+
             } else {
-                Log.e("TextToSpeech", "Initialization failed.");
+                Log.e("TextToSpeech", "TTS initialization failed.");
             }
         });
 
-        // Set Text-to-Speech for news adapter
+
+// Set TTS on adapter
         newsAdapter.setTextToSpeech(textToSpeech);
+
 
         // Display greeting message, start clock update, and fetch articles
         displayUserGreeting();
