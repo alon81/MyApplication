@@ -16,46 +16,50 @@
         android:layout_height="wrap_content"
         android:hint="Enter your email"
         android:textColor="#FFFFFF"
-        android:padding="12dp"
+        android:padding="14dp"
         android:textColorHint="#B0B0B0"
         android:inputType="textEmailAddress"
-        android:layout_marginBottom="16dp"/>
+        android:layout_marginBottom="16dp"
+        android:backgroundTint="#1F1F1F" />
 
-    <!-- Password  -->
+    <!-- Password -->
     <EditText
         android:id="@+id/etRegisterPassword"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Enter your password"
         android:textColor="#FFFFFF"
-        android:padding="12dp"
+        android:padding="14dp"
         android:textColorHint="#B0B0B0"
         android:inputType="textPassword"
-        android:layout_marginBottom="16dp"/>
+        android:layout_marginBottom="16dp"
+        android:backgroundTint="#1F1F1F" />
 
-    <!-- FirstName  -->
+    <!-- FirstName -->
     <EditText
         android:id="@+id/etRegisterFname"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Enter your first name"
         android:textColor="#FFFFFF"
-        android:padding="12dp"
+        android:padding="14dp"
         android:textColorHint="#B0B0B0"
-        android:layout_marginBottom="16dp"/>
+        android:layout_marginBottom="16dp"
+        android:backgroundTint="#1F1F1F" />
 
-    <!-- LastName  -->
+    <!-- LastName -->
     <EditText
         android:id="@+id/etRegisterLname"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Enter your last name"
         android:textColor="#FFFFFF"
-        android:padding="12dp"
+        android:padding="14dp"
         android:textColorHint="#B0B0B0"
-        android:layout_marginBottom="32dp"/>
+        android:layout_marginBottom="32dp"
+        android:backgroundTint="#1F1F1F" />
 
-    <!-- Register  -->
+    <!-- Register Button -->
     <Button
         android:id="@+id/btnRegister"
         android:layout_width="match_parent"
@@ -64,5 +68,6 @@
         android:textColor="#FFFFFF"
         android:backgroundTint="#003366"
         android:padding="16dp"
-        android:textSize="16sp"/>
+        android:textSize="18sp"
+        android:layout_marginTop="16dp" />
 </LinearLayout>

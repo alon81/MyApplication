@@ -1,91 +1,86 @@
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_margin="12dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="6dp"
     android:backgroundTint="#121212"
     android:elevation="8dp"
-    android:layout_gravity="center">
+    app:cardCornerRadius="12dp"
+    app:cardElevation="6dp">
 
-    <FrameLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="20dp">
+        android:padding="16dp">
 
-        <!-- Content of the card -->
+        <!-- Left Side: Star and Arrow -->
         <LinearLayout
-            android:layout_width="match_parent"
+            android:id="@+id/iconsContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:gravity="center_vertical">
+
+            <!-- Favorite Star -->
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/imgFavoriteStar"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:contentDescription="Favorite Star"
+                android:tint="#B0B0B0"
+                android:layout_marginEnd="12dp"
+                app:srcCompat="@drawable/ic_star_border" />
+
+            <!-- Send Email Arrow -->
+            <ImageView
+                android:id="@+id/imgSendEmail"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_arrow_right"
+                android:contentDescription="Send Article Email"
+                android:clickable="true"
+                android:focusable="true" />
+        </LinearLayout>
+
+        <!-- Right Side: Title and Source -->
+        <LinearLayout
+            android:id="@+id/textContainer"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_gravity="start">
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_toEndOf="@id/iconsContainer"
+            android:layout_marginStart="16dp"
+            android:gravity="start">
 
-            <!-- Article Title -->
+            <!-- Title -->
             <TextView
                 android:id="@+id/txtArticleTitle"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="6dp"
-                android:ellipsize="end"
-                android:maxLines="2"
-                android:paddingBottom="8dp"
                 android:text="Article Title"
                 android:textColor="#FFFFFF"
                 android:textSize="20sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:layout_marginBottom="6dp" />
 
+            <!-- Source -->
             <TextView
                 android:id="@+id/txtArticleSource"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Source"
                 android:textSize="14sp"
                 android:textColor="#B0B0B0"
-                android:paddingBottom="12dp"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginTop="4dp"
+                android:maxLines="1"
+                android:ellipsize="end" />
         </LinearLayout>
 
-        <!-- Favorite Star (positioned to the right of the top TextView) -->
-        <androidx.appcompat.widget.AppCompatImageView
-            android:id="@+id/imgFavoriteStar"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:layout_gravity="top|end"
-            android:layout_marginTop="4dp"
-            android:layout_marginEnd="4dp"
-            android:contentDescription="Favorite Star"
-            android:tint="#B0B0B0"
-            app:srcCompat="@drawable/ic_star_border" />
-
-        <!-- URL Dot (positioned at the bottom right of the bottom TextView) -->
-        <TextView
-            android:id="@+id/txtArticleUrl"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="•"
-            android:textSize="22sp"
-            android:textColor="#03A9F4"
-            android:layout_gravity="bottom|end"
-            android:layout_marginBottom="10dp"
-            android:layout_marginEnd="10dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:autoLink="web"
-            android:padding="4dp" />
-    </FrameLayout>
-    <ImageView
-        android:id="@+id/imgSendEmail"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/ic_arrow_right"
-    android:contentDescription="Send Article Email"
-    android:layout_alignParentRight="true"
-    android:layout_marginEnd="16dp"
-    android:layout_centerVertical="true"
-    android:layout_alignParentEnd="true"
-    android:clickable="true"
-    android:focusable="true"/>
-
-
+    </RelativeLayout>
 </androidx.cardview.widget.CardView>

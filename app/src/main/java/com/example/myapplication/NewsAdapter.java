@@ -66,7 +66,7 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHol
             String articleUrl = article.getUrl();
 
             // Set URL dot clickable
-            holder.urlTextView.setOnClickListener(v -> {
+            holder.sourceTextView.setOnClickListener(v -> {
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(articleUrl));
                 v.getContext().startActivity(intent);
             });
@@ -159,8 +159,8 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHol
         public ArticleViewHolder(View itemView) {
             super(itemView);
             titleTextView = itemView.findViewById(R.id.txtArticleTitle);
+            //sourceTextView = itemView.findViewById(R.id.txtArticleSource);
             sourceTextView = itemView.findViewById(R.id.txtArticleSource);
-            urlTextView = itemView.findViewById(R.id.txtArticleUrl);
             starImageView = itemView.findViewById(R.id.imgFavoriteStar);
             shareButton = itemView.findViewById(R.id.imgSendEmail);  // Initialize the send email button
         }

@@ -9,9 +9,11 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -23,7 +25,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -37,16 +43,15 @@ public class FollowPageFragment extends Fragment {
     private FirestoreHelper firestoreHelper;
     private EditText editTextSourceName;
     private Button buttonAddSource;
+    private Spinner categorySpinner;
+    private Button buttonAddCategorySources;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_follow_page, container, false);
 
         //  toolbar
-        Toolbar toolbar = view.findViewById(R.id.toolbar);
-        ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
-        if (((AppCompatActivity) getActivity()).getSupportActionBar() != null) {
-            ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle("Follow News Sources");
-        }
+
         buttonAddSource = view.findViewById(R.id.buttonAddSource);
         buttonAddSource.setOnClickListener(this::onAddSourceButtonClicked);
         setHasOptionsMenu(true);
@@ -62,10 +67,109 @@ public class FollowPageFragment extends Fragment {
         followedAdapter = new FollowedAdapter(getContext(), firestoreHelper);
         rvFollowedSources.setAdapter(followedAdapter);
 
+        categorySpinner = view.findViewById(R.id.categorySpinner);
+        buttonAddCategorySources = view.findViewById(R.id.buttonAddCategorySources);
+        Button removeAllSourcesButton = view.findViewById(R.id.removeAllSourcesButton);
+        removeAllSourcesButton.setOnClickListener(v -> {
+            removeAllFollowedSources();
+        });
+
+
+
+// Set up category options
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(),
+                android.R.layout.simple_spinner_item,
+                new String[]{"business", "entertainment", "general", "health", "science", "sports", "technology"});
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        categorySpinner.setAdapter(adapter);
+
+// Button click logic
+        buttonAddCategorySources.setOnClickListener(v -> {
+            String selectedCategory = categorySpinner.getSelectedItem().toString();
+            addSourcesByCategory(selectedCategory);
+        });
+
+
         loadFollowedSources();
 
         return view;
     }
+    private void addSourcesByCategory(String category) {
+        progressBar.setVisibility(View.VISIBLE);
+        NewsRepository newsRepository = new NewsRepository();
+
+        newsRepository.getSources(new Callback<SourcesResponse>() {
+            @Override
+            public void onResponse(Call<SourcesResponse> call, Response<SourcesResponse> response) {
+                progressBar.setVisibility(View.GONE);
+                if (response.isSuccessful() && response.body() != null) {
+                    List<Source> matchingSources = new ArrayList<>();
+                    for (Source source : response.body().getSources()) {
+                        if (source.getCategory().equalsIgnoreCase(category)) {
+                            matchingSources.add(source);
+                        }
+                    }
+
+                    if (matchingSources.isEmpty()) {
+                        Toast.makeText(getContext(), "No sources found for this category.", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    for (Source source : matchingSources) {
+                        firestoreHelper.addFollowedSource(source.getId());
+                        loadFollowedSources();
+
+                    }
+
+                    // Refresh the list of followed sources
+                    loadFollowedSources();  // This will update the RecyclerView with the new data
+
+                    Toast.makeText(getContext(), "Added " + matchingSources.size() + " sources.", Toast.LENGTH_SHORT).show();
+                    loadFollowedSources();
+                    } else {
+                    Toast.makeText(getContext(), "Failed to fetch sources.", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<SourcesResponse> call, Throwable t) {
+                progressBar.setVisibility(View.GONE);
+                Toast.makeText(getContext(), "Error connecting to API.", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    public void removeAllFollowedSources() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        db.collection("user")
+                .document(userId)
+                .collection("followedSources")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    for (DocumentSnapshot document : queryDocumentSnapshots) {
+                        db.collection("user")
+                                .document(userId)
+                                .collection("followedSources")
+                                .document(document.getId())
+                                .delete()
+                                .addOnSuccessListener(aVoid -> {
+                                    Log.d("FirestoreHelper", "Source removed: " + document.getId());
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.w("FirestoreHelper", "Error removing source: ", e);
+                                });
+                    }
+                    Toast.makeText(getContext(), "All sources removed.", Toast.LENGTH_SHORT).show();
+                    loadFollowedSources(); // Refresh UI
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("FirestoreHelper", "Error getting followed sources", e);
+                    Toast.makeText(getContext(), "Failed to remove sources.", Toast.LENGTH_SHORT).show();
+                });
+    }
+
 
     private void loadFollowedSources() {
         progressBar.setVisibility(View.VISIBLE);
@@ -75,8 +179,10 @@ public class FollowPageFragment extends Fragment {
                 Toast.makeText(getContext(), "No followed sources yet!", Toast.LENGTH_SHORT).show();
             }
             followedAdapter.setSources(followedSources);
+            followedAdapter.notifyDataSetChanged();  // Notify adapter to refresh the data
         });
     }
+
 
     // Add source to favorites when button is clicked
     public void onAddSourceButtonClicked(View view) {
@@ -149,34 +255,6 @@ public class FollowPageFragment extends Fragment {
 
 
 
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.menu, menu);
-    }
-//menu
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        Log.d("FollowPageFragment", "Menu item selected: " + item.getItemId());
-
-        if (item.getItemId() == R.id.menu_follow_page) {
-            Toast.makeText(getContext(), "You are already on the Follow Page.", Toast.LENGTH_SHORT).show();
-            return true;
-        } else if (item.getItemId() == R.id.menu_change_info) {
-            navigateToFragment(new ChangeInfoFragment());
-            return true;
-        } else if (item.getItemId() == R.id.menu_clock) {
-            navigateToFragment(new ClockFragment());
-            return true;
-        } else if (item.getItemId() == R.id.menu_logout) {
-            FirebaseAuth.getInstance().signOut();
-            Intent logoutIntent = new Intent(getContext(), MainActivity.class);
-            startActivity(logoutIntent);
-            getActivity().finish();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
 
     private void navigateToFragment(Fragment fragment) {
         if (getActivity() != null) {

@@ -64,8 +64,7 @@ public class ClockFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_clock, container, false);
-        Toolbar toolbar = view.findViewById(R.id.toolbar);
-        ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
+
 
         setHasOptionsMenu(true);
 
@@ -141,12 +140,18 @@ public class ClockFragment extends Fragment {
 
 
     private void showFilterMenu(View anchor) {
+        // Create a PopupMenu object with the given context and anchor view
         PopupMenu popup = new PopupMenu(getContext(), anchor);
-        popup.getMenuInflater().inflate(R.menu.menu_filter, popup.getMenu());
-        popup.setOnMenuItemClickListener(item -> {
-            String selectedCategory = "none";
 
-            // Using if statements instead of switch
+        // Inflate the menu resource into the popup menu
+        MenuInflater inflater = popup.getMenuInflater();
+        inflater.inflate(R.menu.menu_filter, popup.getMenu());
+
+        // Set a listener to handle item clicks in the popup menu
+        popup.setOnMenuItemClickListener(item -> {
+            String selectedCategory = "none";  // Default category
+
+            // Determine the selected category based on the item clicked
             if (item.getItemId() == R.id.category_none) {
                 selectedCategory = "none";
             } else if (item.getItemId() == R.id.category_business) {
@@ -165,6 +170,7 @@ public class ClockFragment extends Fragment {
                 selectedCategory = "technology";
             }
 
+            // If a valid category is selected, save it to SharedPreferences and fetch articles
             if (selectedCategory != null) {
                 Log.d("CategoryFilter", "Selected category: " + selectedCategory);
                 SharedPreferences prefs = requireContext().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
@@ -173,11 +179,14 @@ public class ClockFragment extends Fragment {
                 Toast.makeText(getContext(), "Filter applied: " + selectedCategory, Toast.LENGTH_SHORT).show();
             }
 
-            return true;
+            return true;  // Return true to indicate that the item was handled
         });
-        popup.show();
-    }
 
+        // Show the popup menu
+        popup.show();
+
+
+    }
     private void fetchArticlesWithFilter(String selectedCategory) {
         Log.d("CategoryFilter", "============================");
         Log.d("CategoryFilter", "Fetch initiated. Category: " + selectedCategory);
@@ -190,8 +199,9 @@ public class ClockFragment extends Fragment {
         }
 
         Log.d("CategoryFilter", "Clearing old articles from adapter...");
-        newsAdapter.updateArticles(new ArrayList<>());
+        newsAdapter.updateArticles(new ArrayList<>());  // Clear existing articles in the adapter
 
+        // Fetch all articles by category (the category filter applied here)
         newsRepository.getArticlesByCategory(selectedCategory, new ApiCallBack<NewsResponse>() {
             @Override
             public void OnSucces(NewsResponse response) {
@@ -204,12 +214,8 @@ public class ClockFragment extends Fragment {
                     return;
                 }
 
-                for (Article article : allCategoryArticles) {
-                    Log.d("CategoryFilter", "📰 " + article.getTitle());
-                }
-
-                Log.d("CategoryFilter", "Loading favorite articles for comparison...");
-                loadFavoriteArticles(allCategoryArticles);
+                // Fetch followed sources from Firebase and filter the articles
+                filterArticlesFromFollowedSources(allCategoryArticles);
             }
 
             @Override
@@ -220,9 +226,51 @@ public class ClockFragment extends Fragment {
         });
     }
 
+    private void filterArticlesFromFollowedSources(List<Article> allCategoryArticles) {
+        // Fetch followed sources
+        newsRepository.getArticlesByFollowedSources("publishedAt", new ApiCallBack<NewsResponse>() {
+            @Override
+            public void OnSucces(NewsResponse response) {
+                if (response != null && response.getArticles() != null) {
+                    List<Article> followedArticles = response.getArticles();
+                    List<String> followedSourceIds = new ArrayList<>();
 
+                    // Collect the ids of all followed sources
+                    for (Article article : followedArticles) {
+                        String sourceId = article.getSource() != null ? article.getSource().getId() : null;
+                        if (sourceId != null) {
+                            followedSourceIds.add(sourceId);
+                        }
+                    }
 
+                    // Filter the articles from the selected category by checking if their source id matches any of the followed sources
+                    List<Article> filteredArticles = new ArrayList<>();
+                    for (Article article : allCategoryArticles) {
+                        if (article.getSource() != null && followedSourceIds.contains(article.getSource().getId())) {
+                            filteredArticles.add(article);
+                        }
+                    }
 
+                    if (!filteredArticles.isEmpty()) {
+                        Log.d("CategoryFilter", "✅ Filtered articles from followed sources: " + filteredArticles.size());
+                        loadFavoriteArticles(filteredArticles); // Load favorite articles and update the adapter
+                    } else {
+                        Log.w("CategoryFilter", "⚠️ No articles found for the selected category and followed sources.");
+                        Toast.makeText(getContext(), "No articles found for this category and your followed sources.", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Log.e("CategoryFilter", "❌ Failed to fetch followed sources.");
+                    showErrorMessage();
+                }
+            }
+
+            @Override
+            public void OnFail() {
+                Log.e("CategoryFilter", "❌ Failed to fetch articles from followed sources.");
+                showErrorMessage();
+            }
+        });
+    }
     private void loadFavoriteArticles(List<Article> allArticles) {
         FirebaseFirestore.getInstance().collection("user")
                 .document(FirebaseAuth.getInstance().getCurrentUser().getUid())
@@ -253,9 +301,6 @@ public class ClockFragment extends Fragment {
         newsAdapter.updateArticles(articles);  // Update the adapter to reflect the new favorite state
     }
 
-    private void showNoFollowedSourcesMessage() {
-        Toast.makeText(getContext(), "You have no followed news sources.", Toast.LENGTH_SHORT).show();
-    }
 
     private void showErrorMessage() {
         Toast.makeText(getContext(), "Failed to load your news sources.", Toast.LENGTH_SHORT).show();
@@ -329,42 +374,4 @@ public class ClockFragment extends Fragment {
         }
     }
 
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.menu, menu);
-    }
-
-    // Handle menu options
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        Log.d("ClockFragment", "Menu item selected: " + item.getItemId());
-
-        if (item.getItemId() == R.id.menu_clock) {
-            Toast.makeText(getContext(), "You are already on the Clock page.", Toast.LENGTH_SHORT).show();
-            return true;
-        } else if (item.getItemId() == R.id.menu_change_info) {
-            navigateToFragment(new ChangeInfoFragment());
-            return true;
-        } else if (item.getItemId() == R.id.menu_follow_page) {
-            navigateToFragment(new FollowPageFragment());
-            return true;
-        } else if (item.getItemId() == R.id.menu_logout) {
-            FirebaseAuth.getInstance().signOut();
-            Intent logoutIntent = new Intent(getContext(), MainActivity.class);
-            startActivity(logoutIntent);
-            getActivity().finish();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    private void navigateToFragment(Fragment fragment) {
-        if (getActivity() != null) {
-            FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
-            transaction.replace(R.id.fragment_container, fragment);
-            transaction.addToBackStack(null);
-            transaction.commit();
-        }
-    }
 }

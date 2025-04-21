@@ -25,26 +25,21 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
-        <!-- Toolbar -->
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#003366"
-            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-            app:layout_constraintTop_toTopOf="parent" />
+        <!-- Filter Button -->
         <ImageButton
             android:id="@+id/button_filter"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_filter_list"
-            android:contentDescription="Filter"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="2dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:layout_gravity="end"
-            android:padding="8dp" />
+            android:contentDescription="Filter"
+            android:padding="12dp"
+            android:src="@drawable/ic_filter_list"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/txtGreeting"
+            app:layout_constraintTop_toBottomOf="@id/txtGreeting" /> <!-- Slightly higher by reducing margin -->
 
-
-        <!-- Clock  -->
+        <!-- Clock -->
         <TextView
             android:id="@+id/txtClock"
             android:layout_width="wrap_content"
@@ -52,13 +47,13 @@
             android:text="00:00:00"
             android:textSize="60sp"
             android:textColor="#FFFFFF"
-            app:layout_constraintTop_toBottomOf="@id/toolbar"
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             android:layout_marginTop="100dp"
             android:gravity="center" />
 
-        <!-- Greeting  -->
+        <!-- Greeting -->
         <TextView
             android:id="@+id/txtGreeting"
             android:layout_width="wrap_content"
@@ -69,22 +64,21 @@
             app:layout_constraintTop_toBottomOf="@id/txtClock"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="24dp"
             android:gravity="center" />
 
-
-
-        <!--  Articles RecyclerView -->
+        <!-- Articles RecyclerView -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerViewArticles"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@id/txtGreeting"
-            app:layout_constraintStart_toStartOf="parent"
+            android:layout_height="0dp"
+            android:scrollbars="vertical"
+            app:layout_constraintBottom_toBottomOf="@+id/imgBackground"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="100dp"
-            android:scrollbars="vertical" />
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/button_filter"
+            app:layout_constraintVertical_bias="1.0" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

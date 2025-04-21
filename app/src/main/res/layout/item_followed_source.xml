@@ -4,39 +4,41 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:padding="16dp"
-    android:background="#121212"
-    android:elevation="2dp"
+    android:background="#1A1A1A"
+    android:elevation="4dp"
     android:layout_marginTop="8dp"
     android:layout_marginBottom="8dp"
+    android:layout_marginStart="12dp"
+    android:layout_marginEnd="12dp"
     android:gravity="center_vertical">
 
-    <!-- source name  -->
-<TextView
-android:id="@+id/source_name"
-android:layout_width="0dp"
-android:layout_height="wrap_content"
-android:layout_weight="1"
-android:text="Source Name"
-android:textSize="18sp"
-android:textColor="#FFFFFF"
-android:textStyle="bold"
-android:ellipsize="end"
-android:maxLines="1"
-android:singleLine="true"
-android:paddingEnd="8dp"
-android:layout_marginEnd="12dp" />
+    <!-- Source Name -->
+    <TextView
+        android:id="@+id/source_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Source Name"
+        android:textSize="18sp"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:paddingEnd="8dp" />
+
 
     <!-- unfollow  -->
-<Button
-android:id="@+id/unfollow_button"
-android:layout_width="wrap_content"
-android:layout_height="wrap_content"
-android:text="Unfollow"
-android:textColor="#FFFFFF"
-android:backgroundTint="#D32F2F"
-    android:padding="12dp"
-    android:textSize="14sp"
-    android:elevation="4dp"
-    android:layout_gravity="center_vertical" />
+    <Button
+        android:id="@+id/unfollow_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Unfollow"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#D32F2F"
+        android:padding="12dp"
+        android:textSize="14sp"
+        android:elevation="4dp"
+        android:layout_gravity="center_vertical" />
 
-    </LinearLayout>
+</LinearLayout>
+

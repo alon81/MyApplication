@@ -1,5 +1,5 @@
-package com.example.myapplication;
 
+package com.example.myapplication;
 import android.app.AlertDialog;
 import android.app.TimePickerDialog;
 import android.content.ActivityNotFoundException;
@@ -41,7 +41,9 @@ import androidx.work.WorkManager;
 import androidx.work.WorkRequest;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
@@ -69,9 +71,6 @@ public class ChangeInfoFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_change_info, container, false);
 
-        // Toolbar setup
-        Toolbar toolbar = view.findViewById(R.id.toolbar);
-        ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
 
         etFirstName = view.findViewById(R.id.etFirstName);
         etLastName = view.findViewById(R.id.etLastName);
@@ -84,6 +83,16 @@ public class ChangeInfoFragment extends Fragment {
 
         notifToggleBtn = view.findViewById(R.id.notificationButton);
         notifToggleBtn.setOnClickListener(v -> handleNotificationToggle());
+
+        Button logoutButton = view.findViewById(R.id.logoutButton);
+
+        logoutButton.setOnClickListener(v -> {
+            FirebaseAuth.getInstance().signOut();
+            Intent intent = new Intent(getActivity(), MainActivity.class); // back to login
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+        });
+
 
         fbAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
@@ -151,14 +160,29 @@ public class ChangeInfoFragment extends Fragment {
 
         if (!isEnabled) {
             showTimePickerDialog(); // Pick time and schedule
+            updateNotificationIcon(true); // Update the icon to "on"
         } else {
             cancelNotifications();
             SharedPreferences.Editor editor = prefs.edit();
             editor.putBoolean(KEY_NOTIF_ENABLED, false);
             editor.apply();
             Toast.makeText(getContext(), "Notifications Disabled", Toast.LENGTH_SHORT).show();
+            updateNotificationIcon(false); // Update the icon to "off"
         }
     }
+
+    private void updateNotificationIcon(boolean isEnabled) {
+        ImageView notificationIcon = getView().findViewById(R.id.notificationButton); // Replace with your actual ImageView reference
+
+        if (isEnabled) {
+            // Set the notification icon to "on"
+            notificationIcon.setImageResource(R.drawable.baseline_alarm_on_24);
+        } else {
+            // Set the notification icon to "off"
+            notificationIcon.setImageResource(R.drawable.baseline_alarm_off_24);
+        }
+    }
+
     private void showTimePickerDialog() {
         Calendar currentTime = Calendar.getInstance();
         int hour = currentTime.get(Calendar.HOUR_OF_DAY);
@@ -229,219 +253,54 @@ public class ChangeInfoFragment extends Fragment {
         // Load favorite articles
         loadFavoriteArticles(recyclerViewFavorites);
 
-        // Close button logic
-        Button closeButton = popupView.findViewById(R.id.btnClosePopup); // Ensure this button exists in your layout
-        android.widget.PopupWindow popupWindow = new android.widget.PopupWindow(popupView,
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        // Create the PopupWindow
+        android.widget.PopupWindow popupWindow = new android.widget.PopupWindow(
+                popupView,
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                true // Focusable to allow dismissal when clicking outside
+        );
 
-        closeButton.setOnClickListener(v -> popupWindow.dismiss()); // Dismiss popup when close button is clicked
+        // Allow dismissal when tapping outside
+        popupWindow.setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+        popupWindow.setOutsideTouchable(true);
+
+        // Close button logic
+        Button closeButton = popupView.findViewById(R.id.btnClosePopup);
+        closeButton.setOnClickListener(v -> popupWindow.dismiss());
 
         // Show the PopupWindow
         popupWindow.showAtLocation(getView(), android.view.Gravity.CENTER, 0, 0);
     }
 
+
     // Load favorite articles from Firestore and populate RecyclerView
     private void loadFavoriteArticles(RecyclerView recyclerViewFavorites) {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) return;
+
+        String userId = currentUser.getUid();  // ensure it's valid
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();  // get the instance
+        TextToSpeech tts = new TextToSpeech(requireContext(), status -> {}); // basic setup (can be refined)
+
         db.collection("user")
                 .document(userId)
                 .collection("favorites")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<Article> favoriteArticles = new ArrayList<>();
-                    for (var document : queryDocumentSnapshots) {
-                        Article article = document.toObject(Article.class);
-                        favoriteArticles.add(article);
+                    for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                        Article article = doc.toObject(Article.class);
+                        if (article != null) favoriteArticles.add(article);
                     }
 
-                    FavoriteArticlesAdapter adapter = new FavoriteArticlesAdapter(favoriteArticles);
+                    FavoriteArticlesAdapter adapter = new FavoriteArticlesAdapter(requireContext(), favoriteArticles, userId, db, tts);
                     recyclerViewFavorites.setAdapter(adapter);
-                })
-                .addOnFailureListener(e -> {
-                    // Handle error
                 });
     }
-//    private void shownotificationPopup() {
-//        View popupView = LayoutInflater.from(getContext()).inflate(R.layout.popup_notifications, null);
-//        PopupWindow popupWindow = new PopupWindow(popupView,
-//                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
-//
-//        // Buttons
-//        Button enableButton = popupView.findViewById(R.id.btnEnableNotifications);
-//        Button disableButton = popupView.findViewById(R.id.btnDisableNotifications);
-//        Button closeButton = popupView.findViewById(R.id.btnCloseNotificationPopup);
-//
-//        enableButton.setOnClickListener(v -> {
-//            Toast.makeText(getContext(), "Notifications enabled!", Toast.LENGTH_SHORT).show();
-//            popupWindow.dismiss();
-//            // Add logic to enable notifications here
-//        });
-//
-//        disableButton.setOnClickListener(v -> {
-//            Toast.makeText(getContext(), "Notifications disabled!", Toast.LENGTH_SHORT).show();
-//            popupWindow.dismiss();
-//            // Add logic to disable notifications here
-//        });
-//
-//        closeButton.setOnClickListener(v -> popupWindow.dismiss());
-//
-//        // Show the popup centered on screen
-//        popupWindow.showAtLocation(requireView(), Gravity.CENTER, 0, 0);
-//    }
-
 
     // Adapter for the favorite articles RecyclerView
-    private class FavoriteArticlesAdapter extends RecyclerView.Adapter<FavoriteArticlesAdapter.FavoriteViewHolder> {
-
-        private List<Article> favoriteArticles;
-
-        public FavoriteArticlesAdapter(List<Article> favoriteArticles) {
-            this.favoriteArticles = favoriteArticles;
-        }
-
-        @Override
-        public FavoriteViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_article, parent, false);
-            return new FavoriteViewHolder(view);
-        }
-        @Override
-        public void onBindViewHolder(FavoriteViewHolder holder, int position) {
-            Article article = favoriteArticles.get(position);
-            holder.titleTextView.setText(article.getTitle());
-            holder.sourceTextView.setText(article.getSource().getName());
-
-            // Set URL as a dot (instead of the full URL text)
-            holder.urlTextView.setText(".");  // Display a dot instead of the full URL
-
-            // Set URL dot clickable
-            holder.urlTextView.setOnClickListener(v -> {
-                // Open the URL in the browser when clicked
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(article.getUrl()));
-                v.getContext().startActivity(intent);
-            });
-
-            // Star icon: always filled for favorites
-            holder.starImageView.setImageResource(R.drawable.ic_star_filled);
-            holder.starImageView.setColorFilter(Color.YELLOW);
-
-            // Handle the unfavoriting action when the star is clicked
-            holder.starImageView.setOnClickListener(v -> {
-                removeFromFavorites(article.getUrl());
-                favoriteArticles.remove(position);
-                notifyItemRemoved(position);
-            });
-
-            holder.titleTextView.setOnClickListener(v -> {
-                if (textToSpeech != null) {
-                    String title = article.getTitle();
-
-                    // Detect Hebrew (basic check based on Unicode range)
-                    boolean isHebrew = title.matches(".*\\p{InHebrew}.*");
-
-                    // Set language accordingly
-                    Locale targetLocale = isHebrew ? new Locale("he") : Locale.US;
-                    int result = textToSpeech.setLanguage(targetLocale);
-
-                    if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                        Toast.makeText(getContext(), "Selected language not supported on this device.", Toast.LENGTH_SHORT).show();
-                    } else {
-                        textToSpeech.speak(title, TextToSpeech.QUEUE_FLUSH, null, null);
-                    }
-                }
-            });
-
-
-            // Arrow button to send the article via email
-            holder.shareButton.setOnClickListener(v -> {
-                // Show email sending dialog
-                shareArticle(article);
-            });
-        }
-
-        private void shareArticle(Article article) {
-            Intent shareIntent = new Intent(Intent.ACTION_SEND);
-            shareIntent.setType("text/plain");
-
-            String shareMessage = "Check out this article:\n" +
-                    article.getTitle() + "\n" + article.getUrl();
-
-            shareIntent.putExtra(Intent.EXTRA_TEXT, shareMessage);
-
-            try {
-                getContext().startActivity(Intent.createChooser(shareIntent, "Share article via"));
-            } catch (ActivityNotFoundException e) {
-                Toast.makeText(getContext(), "No app available to share the article.", Toast.LENGTH_SHORT).show();
-            }
-        }
-
-
-        @Override
-        public int getItemCount() {
-            return favoriteArticles.size();
-        }
-
-        public class FavoriteViewHolder extends RecyclerView.ViewHolder {
-
-
-            TextView titleTextView, sourceTextView, urlTextView;
-            ImageView starImageView, shareButton;  // Add the button to send email
-
-            public FavoriteViewHolder(View itemView) {
-                super(itemView);
-                titleTextView = itemView.findViewById(R.id.txtArticleTitle);
-                sourceTextView = itemView.findViewById(R.id.txtArticleSource);
-                urlTextView = itemView.findViewById(R.id.txtArticleUrl);
-                starImageView = itemView.findViewById(R.id.imgFavoriteStar);
-                shareButton = itemView.findViewById(R.id.imgSendEmail);  // Initialize the send email button
-            }
-        }
-
-        private void removeFromFavorites(String articleUrl) {
-            db.collection("user")
-                    .document(userId)
-                    .collection("favorites")
-                    .whereEqualTo("url", articleUrl)
-                    .get()
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful() && !task.getResult().isEmpty()) {
-                            String documentId = task.getResult().getDocuments().get(0).getId();
-                            db.collection("user")
-                                    .document(userId)
-                                    .collection("favorites")
-                                    .document(documentId)
-                                    .delete();
-                        }
-                    });
-        }
-    }
-
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.menu, menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        Log.d("ChangeInfoFragment", "Menu item selected: " + item.getItemId());
-
-        if (item.getItemId() == R.id.menu_change_info) {
-            Toast.makeText(getContext(), "You are already on the Change Info page.", Toast.LENGTH_SHORT).show();
-            return true;
-        } else if (item.getItemId() == R.id.menu_clock) {
-            navigateToFragment(new ClockFragment());
-            return true;
-        } else if (item.getItemId() == R.id.menu_follow_page) {
-            navigateToFragment(new FollowPageFragment());
-            return true;
-        } else if (item.getItemId() == R.id.menu_logout) {
-            FirebaseAuth.getInstance().signOut();
-            Intent logoutIntent = new Intent(getContext(), MainActivity.class);
-            startActivity(logoutIntent);
-            getActivity().finish();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
 
     private void saveChanges() {
         String firstName = etFirstName.getText().toString();
@@ -463,12 +322,13 @@ public class ChangeInfoFragment extends Fragment {
         if (getActivity() != null) getActivity().finish();
     }
 
-    private void navigateToFragment(Fragment fragment) {
-        if (getActivity() != null) {
-            FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
-            transaction.replace(R.id.fragment_container, fragment);
-            transaction.addToBackStack(null);
-            transaction.commit();
-        }
+    @Override
+    public void onStart() {
+        super.onStart();
+        SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        boolean isEnabled = prefs.getBoolean(KEY_NOTIF_ENABLED, false);
+        updateNotificationIcon(isEnabled); // Set the icon based on the current state
     }
+
+
 }

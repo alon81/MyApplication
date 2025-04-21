@@ -1,10 +1,49 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/category_none" android:title="None" />
-    <item android:id="@+id/category_business" android:title="Business" />
-    <item android:id="@+id/category_entertainment" android:title="Entertainment" />
-    <item android:id="@+id/category_general" android:title="General" />
-    <item android:id="@+id/category_health" android:title="Health" />
-    <item android:id="@+id/category_science" android:title="Science" />
-    <item android:id="@+id/category_sports" android:title="Sports" />
-    <item android:id="@+id/category_technology" android:title="Technology" />
+    <!-- None Category -->
+    <item
+        android:id="@+id/category_none"
+        android:title="None"
+        android:icon="@drawable/ic_none" />
+
+    <!-- Business Category -->
+    <item
+        android:id="@+id/category_business"
+        android:title="Business"
+        android:icon="@drawable/ic_business" />
+
+    <!-- Entertainment Category -->
+    <item
+        android:id="@+id/category_entertainment"
+        android:title="Entertainment"
+        android:icon="@drawable/ic_entertainment" />
+
+    <!-- General Category -->
+    <item
+        android:id="@+id/category_general"
+        android:title="General"
+        android:icon="@drawable/ic_general" />
+
+    <!-- Health Category -->
+    <item
+        android:id="@+id/category_health"
+        android:title="Health"
+        android:icon="@drawable/ic_health" />
+
+    <!-- Science Category -->
+    <item
+        android:id="@+id/category_science"
+        android:title="Science"
+        android:icon="@drawable/ic_science" />
+
+    <!-- Sports Category -->
+    <item
+        android:id="@+id/category_sports"
+        android:title="Sports"
+        android:icon="@drawable/ic_sports" />
+
+    <!-- Technology Category -->
+    <item
+        android:id="@+id/category_technology"
+        android:title="Technology"
+        android:icon="@drawable/ic_technology" />
 </menu>

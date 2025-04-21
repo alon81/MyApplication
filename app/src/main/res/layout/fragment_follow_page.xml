@@ -3,10 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".FollowPageFragment">
 
-    <!-- LinearLayout FollowPage  -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -15,77 +13,103 @@
         android:background="#121212"
         android:gravity="center_vertical">
 
-        <!-- Toolbar  -->
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:title="Follow News Sources"
-            android:titleTextColor="#FFFFFF"
-            android:background="#003366"
-            android:elevation="12dp"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:layout_marginBottom="16dp"
-            app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
-
-        <!-- ProgressBar  -->
         <ProgressBar
             android:id="@+id/progressBar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:visibility="gone"
             android:layout_gravity="center"
-            android:indeterminateTint="#003366"
-            android:layout_marginTop="30dp"
-            android:layout_marginBottom="30dp" />
+            android:indeterminateTint="#004B6E"
+            android:layout_marginVertical="30dp" />
 
-        <!-- source search -->
-        <EditText
-            android:id="@+id/editTextSourceName"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Enter source name"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginBottom="8dp">
+            <Spinner
+                android:id="@+id/categorySpinner"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
             android:textColor="#FFFFFF"
-            android:textColorHint="#B0B0B0"
-            android:backgroundTint="#003366"
-            android:inputType="text"
-            android:minHeight="48dp"
+            android:textSize="16sp"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
-            android:textSize="16sp"
-            android:layout_marginBottom="16dp"
-            android:layout_marginTop="24dp"
-            android:drawablePadding="8dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp"/>
+            android:dropDownWidth="match_parent"
+            android:layout_margin="8dp" />
 
-        <!-- add source -->
-        <Button
-            android:id="@+id/buttonAddSource"
+
+            <EditText
+                android:id="@+id/editTextSourceName"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:hint="Enter source name"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#B0B0B0"
+                android:backgroundTint="#004B6E"
+                android:inputType="text"
+                android:paddingHorizontal="16dp"
+                android:textSize="16sp"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp" />
+        </LinearLayout>
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Add to Favorites"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#003366"
-            android:textSize="16sp"
-            android:padding="14dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="24dp"
-            android:elevation="6dp"
-            android:layout_gravity="center"/>
+            android:orientation="horizontal"
+            android:gravity="center">
 
-        <!-- display sources -->
+            <Button
+                android:id="@+id/buttonAddCategorySources"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:text="Add by Category"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:layout_marginEnd="8dp"
+                android:elevation="6dp" />
+
+            <Button
+                android:id="@+id/buttonAddSource"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:text="Add by Name"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:layout_marginStart="8dp"
+                android:elevation="6dp" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/removeAllSourcesButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Remove All Sources"
+            android:textColor="#FF5252"
+            android:background="@android:color/transparent"
+            android:layout_marginTop="16dp"
+            android:textSize="16sp" />
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvFollowedSources"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_marginTop="16dp"
             android:layout_weight="1"
-            android:paddingTop="16dp"
+            android:layout_marginTop="16dp"
+            android:paddingTop="8dp"
             android:contentDescription="List of followed news sources"
-            android:importantForAccessibility="yes"/>
-
+            android:scrollbars="vertical"
+            android:background="#1F1F1F"
+            android:elevation="4dp" />
     </LinearLayout>
 
 </FrameLayout>
