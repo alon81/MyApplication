@@ -1,14 +1,19 @@
 package com.example.myapplication;
 
 import android.app.AlertDialog;
+import android.app.TimePickerDialog;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.icu.util.Calendar;
 import android.net.Uri;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -17,7 +22,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,6 +36,9 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
+import androidx.work.WorkRequest;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
@@ -37,6 +47,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 public class ChangeInfoFragment extends Fragment {
 
@@ -48,6 +59,11 @@ public class ChangeInfoFragment extends Fragment {
     private String userId;
     private ImageView starImageView; // For the star button
     private TextToSpeech textToSpeech; // Text-to-Speech engine
+    private static final String PREFS_NAME = "MyPrefs";
+    private static final String KEY_NOTIF_ENABLED = "notifications_enabled";
+    private static final String KEY_HOUR = "notification_hour";
+    private static final String KEY_MINUTE = "notification_minute";
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -62,8 +78,12 @@ public class ChangeInfoFragment extends Fragment {
         txtEmail = view.findViewById(R.id.txtEmail);
         btnSaveChanges = view.findViewById(R.id.btnSaveChanges);
         starImageView = view.findViewById(R.id.imgFavoriteStar);  // Initialize star image view
+        ImageButton notifToggleBtn;
 
         setHasOptionsMenu(true);
+
+        notifToggleBtn = view.findViewById(R.id.notificationButton);
+        notifToggleBtn.setOnClickListener(v -> handleNotificationToggle());
 
         fbAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
@@ -125,6 +145,77 @@ public class ChangeInfoFragment extends Fragment {
             }
         });
     }
+    private void handleNotificationToggle() {
+        SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        boolean isEnabled = prefs.getBoolean(KEY_NOTIF_ENABLED, false);
+
+        if (!isEnabled) {
+            showTimePickerDialog(); // Pick time and schedule
+        } else {
+            cancelNotifications();
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putBoolean(KEY_NOTIF_ENABLED, false);
+            editor.apply();
+            Toast.makeText(getContext(), "Notifications Disabled", Toast.LENGTH_SHORT).show();
+        }
+    }
+    private void showTimePickerDialog() {
+        Calendar currentTime = Calendar.getInstance();
+        int hour = currentTime.get(Calendar.HOUR_OF_DAY);
+        int minute = currentTime.get(Calendar.MINUTE);
+
+        TimePickerDialog timePickerDialog = new TimePickerDialog(
+                getContext(),
+                (view, hourOfDay, minute1) -> {
+                    saveNotificationTime(hourOfDay, minute1);
+                    scheduleDailyNotification(hourOfDay, minute1);
+                    Toast.makeText(getContext(), "Notifications set for " + hourOfDay + ":" + minute1, Toast.LENGTH_SHORT).show();
+                },
+                hour, minute, true
+        );
+
+        timePickerDialog.show();
+    }
+    private void saveNotificationTime(int hour, int minute) {
+        SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putInt(KEY_HOUR, hour);
+        editor.putInt(KEY_MINUTE, minute);
+        editor.putBoolean(KEY_NOTIF_ENABLED, true);
+        editor.apply();
+    }
+
+    private void scheduleDailyNotification(int hour, int minute) {
+        long delay = calculateDelay(hour, minute);
+
+        WorkRequest request = new OneTimeWorkRequest.Builder(NotificationWorker.class)
+                .setInitialDelay(delay, TimeUnit.MILLISECONDS)
+                .addTag("daily_notification")
+                .build();
+
+        WorkManager.getInstance(requireContext()).enqueue(request);
+    }
+
+    private long calculateDelay(int hour, int minute) {
+        Calendar now = Calendar.getInstance();
+        Calendar target = Calendar.getInstance();
+        target.set(Calendar.HOUR_OF_DAY, hour);
+        target.set(Calendar.MINUTE, minute);
+        target.set(Calendar.SECOND, 0);
+        target.set(Calendar.MILLISECOND, 0);
+
+        if (target.before(now)) {
+            target.add(Calendar.DAY_OF_YEAR, 1); // schedule for next day
+        }
+
+        return target.getTimeInMillis() - now.getTimeInMillis();
+    }
+    private void cancelNotifications() {
+        WorkManager.getInstance(requireContext()).cancelAllWorkByTag("daily_notification");
+    }
+
+
+
 
     // Open the favorites popup when star is clicked
     private void openFavoritesPopup() {
@@ -169,6 +260,34 @@ public class ChangeInfoFragment extends Fragment {
                     // Handle error
                 });
     }
+//    private void shownotificationPopup() {
+//        View popupView = LayoutInflater.from(getContext()).inflate(R.layout.popup_notifications, null);
+//        PopupWindow popupWindow = new PopupWindow(popupView,
+//                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
+//
+//        // Buttons
+//        Button enableButton = popupView.findViewById(R.id.btnEnableNotifications);
+//        Button disableButton = popupView.findViewById(R.id.btnDisableNotifications);
+//        Button closeButton = popupView.findViewById(R.id.btnCloseNotificationPopup);
+//
+//        enableButton.setOnClickListener(v -> {
+//            Toast.makeText(getContext(), "Notifications enabled!", Toast.LENGTH_SHORT).show();
+//            popupWindow.dismiss();
+//            // Add logic to enable notifications here
+//        });
+//
+//        disableButton.setOnClickListener(v -> {
+//            Toast.makeText(getContext(), "Notifications disabled!", Toast.LENGTH_SHORT).show();
+//            popupWindow.dismiss();
+//            // Add logic to disable notifications here
+//        });
+//
+//        closeButton.setOnClickListener(v -> popupWindow.dismiss());
+//
+//        // Show the popup centered on screen
+//        popupWindow.showAtLocation(requireView(), Gravity.CENTER, 0, 0);
+//    }
+
 
     // Adapter for the favorite articles RecyclerView
     private class FavoriteArticlesAdapter extends RecyclerView.Adapter<FavoriteArticlesAdapter.FavoriteViewHolder> {

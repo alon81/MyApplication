@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "com.example.myapplication"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.myapplication"
@@ -48,6 +48,9 @@ dependencies {
     implementation(libs.okhttp)
     implementation (libs.logging.interceptor)
         implementation(libs.material.v180)
+    implementation (libs.work.runtime) // or the latest stable version
+    implementation (libs.guava)
+
 
 
 

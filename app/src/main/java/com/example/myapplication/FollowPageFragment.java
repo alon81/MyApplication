@@ -92,20 +92,21 @@ public class FollowPageFragment extends Fragment {
     }
 
     // Check if the source is supported by NewsAPI
-    private void checkIfSourceIsSupported(final String sourceName) {
+    private void checkIfSourceIsSupported(final String sourceIdInput) {
         NewsRepository newsRepository = new NewsRepository();
         newsRepository.getSources(new Callback<SourcesResponse>() {
             @Override
             public void onResponse(Call<SourcesResponse> call, Response<SourcesResponse> response) {
-                Log.d("FollowPageFragment", "onResponse: " + response.code());  // Log response code
+                Log.d("FollowPageFragment", "onResponse: " + response.code());
+
                 if (response.isSuccessful() && response.body() != null) {
-                    Log.d("FollowPageFragment", "Response body: " + response.body());  // Log the response body
+                    Log.d("FollowPageFragment", "Response body: " + response.body());
 
                     boolean isSourceValid = false;
                     SourcesResponse sourcesResponse = response.body();
 
                     for (Source source : sourcesResponse.getSources()) {
-                        if (source.getUrl().contains(sourceName)) {
+                        if (source.getId() != null && source.getId().equalsIgnoreCase(sourceIdInput)) {
                             isSourceValid = true;
                             break;
                         }
@@ -117,20 +118,20 @@ public class FollowPageFragment extends Fragment {
                                 .collection("user")
                                 .document(userId)
                                 .collection("followedSources")
-                                .document(sourceName)
+                                .document(sourceIdInput)
                                 .get()
                                 .addOnCompleteListener(task -> {
                                     if (task.isSuccessful() && !task.getResult().exists()) {
-                                        firestoreHelper.addFollowedSource(sourceName);
-                                        Toast.makeText(getContext(), sourceName + " added to favorites!", Toast.LENGTH_SHORT).show();
+                                        firestoreHelper.addFollowedSource(sourceIdInput);
+                                        Toast.makeText(getContext(), sourceIdInput + " added to favorites!", Toast.LENGTH_SHORT).show();
                                         loadFollowedSources();
                                         editTextSourceName.setText("");
                                     } else {
-                                        Toast.makeText(getContext(), sourceName + " is already followed!", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(getContext(), sourceIdInput + " is already followed!", Toast.LENGTH_SHORT).show();
                                     }
                                 });
                     } else {
-                        Toast.makeText(getContext(), "Source is not supported by the API.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Source ID \"" + sourceIdInput + "\" is not supported by the API.", Toast.LENGTH_SHORT).show();
                     }
                 } else {
                     Log.e("FollowPageFragment", "Error: Response not successful or body is null.");
@@ -140,7 +141,7 @@ public class FollowPageFragment extends Fragment {
 
             @Override
             public void onFailure(Call<SourcesResponse> call, Throwable t) {
-                Log.e("FollowPageFragment", "onFailure: " + t.getMessage());  // Log error message
+                Log.e("FollowPageFragment", "onFailure: " + t.getMessage());
                 Toast.makeText(getContext(), "Failed to connect to API.", Toast.LENGTH_SHORT).show();
             }
         });

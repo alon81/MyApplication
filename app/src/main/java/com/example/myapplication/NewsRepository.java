@@ -77,6 +77,67 @@ public class NewsRepository {
             }
         });
     }
+    public void getArticlesByCategory(String category, ApiCallBack<NewsResponse> callBack) {
+        // Input validation
+        if (category == null || category.isEmpty()) {
+            Log.e("NewsRepository", "Category parameter is empty or null");
+            callBack.OnFail();
+            return;
+        }
+
+        // Log the request details
+        Log.d("NewsRepository", "--------------------------------------------------");
+        Log.d("NewsRepository", "Preparing API request for category: " + category);
+        Log.d("NewsRepository", "Country: us | PageSize: 100");
+        Log.d("NewsRepository", "--------------------------------------------------");
+
+        // Prepare the API request
+        Call<NewsResponse> call = apiService.getTopHeadlinesByCategory("us", category, 100 ,API_KEY); // Ensure API call uses proper parameters
+
+        // Execute the API request
+        call.enqueue(new Callback<NewsResponse>() {
+            @Override
+            public void onResponse(Call<NewsResponse> call, Response<NewsResponse> response) {
+                Log.d("NewsRepository", "✅ API call completed. HTTP Code: " + response.code());
+
+                // Check if the response is successful
+                if (response.isSuccessful() && response.body() != null) {
+                    List<Article> articles = response.body().getArticles();
+                    Log.d("NewsRepository", "✅ Success. Article count: " + articles.size());
+
+                    // Log each article's title
+                    for (Article article : articles) {
+                        Log.d("NewsRepository", "→ " + article.getTitle());
+                    }
+
+                    // Pass the successful response to the callback
+                    callBack.OnSucces(response.body());
+                } else {
+                    // If the response failed, log the error
+                    Log.e("NewsRepository", "❌ Response failed or body was null.");
+                    if (response.errorBody() != null) {
+                        try {
+                            Log.e("NewsRepository", "🧾 Error body: " + response.errorBody().string());
+                        } catch (IOException e) {
+                            Log.e("NewsRepository", "⚠️ Failed to read errorBody", e);
+                        }
+                    }
+                    callBack.OnFail();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<NewsResponse> call, Throwable t) {
+                // Log the network failure
+                Log.e("NewsRepository", "💥 API call failed: " + t.getMessage(), t);
+                callBack.OnFail();
+            }
+        });
+    }
+
+
+
+
 
 
 

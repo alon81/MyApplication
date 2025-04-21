@@ -94,45 +94,6 @@ public class FirestoreHelper {
                 });
     }
 
-    // 🔥 Save article by URL
-    public void saveArticle(String url) {
-        String userId = auth.getCurrentUser().getUid();
-        HashMap<String, Object> article = new HashMap<>();
-        article.put("url", url);
-        db.collection("user")
-                .document(userId)
-                .collection("savedArticles")
-                .add(article)
-                .addOnSuccessListener(documentReference ->
-                        Log.d("FirestoreHelper", "Article saved: " + url))
-                .addOnFailureListener(e ->
-                        Log.w("FirestoreHelper", "Error saving article", e));
-    }
-
-    // 🔥 Remove saved article by URL
-    public void removeSavedArticle(String url) {
-        String userId = auth.getCurrentUser().getUid();
-        db.collection("user")
-                .document(userId)
-                .collection("savedArticles")
-                .whereEqualTo("url", url)
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful() && !task.getResult().isEmpty()) {
-                        for (QueryDocumentSnapshot doc : task.getResult()) {
-                            db.collection("user")
-                                    .document(userId)
-                                    .collection("savedArticles")
-                                    .document(doc.getId())
-                                    .delete()
-                                    .addOnSuccessListener(aVoid ->
-                                            Log.d("FirestoreHelper", "Article removed: " + url))
-                                    .addOnFailureListener(e ->
-                                            Log.w("FirestoreHelper", "Error removing article", e));
-                        }
-                    }
-                });
-    }
 
     public interface OnFollowedSourcesLoadedListener {
         void onFollowedSourcesLoaded(List<String> followedSources);
