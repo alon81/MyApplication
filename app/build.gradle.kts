@@ -50,6 +50,11 @@ dependencies {
         implementation(libs.material.v180)
     implementation (libs.work.runtime) // or the latest stable version
     implementation (libs.guava)
+    implementation (libs.play.services.location)
+    dependencies {
+        implementation (libs.appcompat.v120) // Make sure this is included
+    }
+
 
 
 

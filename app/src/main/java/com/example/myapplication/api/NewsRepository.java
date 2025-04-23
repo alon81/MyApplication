@@ -1,7 +1,10 @@
-package com.example.myapplication;
+package com.example.myapplication.api;
 
 import android.util.Log;
 
+import com.example.myapplication.objects.Article;
+import com.example.myapplication.objects.NewsResponse;
+import com.example.myapplication.objects.SourcesResponse;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;

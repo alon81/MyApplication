@@ -1,49 +1,52 @@
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- None Category -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
     <item
         android:id="@+id/category_none"
         android:title="None"
-        android:icon="@drawable/ic_none" />
+        android:icon="@drawable/ic_none"
+        app:showAsAction="always" />
 
-    <!-- Business Category -->
     <item
         android:id="@+id/category_business"
         android:title="Business"
-        android:icon="@drawable/ic_business" />
+        android:icon="@drawable/ic_business"
+        app:showAsAction="always" />
 
-    <!-- Entertainment Category -->
     <item
         android:id="@+id/category_entertainment"
         android:title="Entertainment"
-        android:icon="@drawable/ic_entertainment" />
+        android:icon="@drawable/ic_entertainment"
+        app:showAsAction="always" />
 
-    <!-- General Category -->
     <item
         android:id="@+id/category_general"
         android:title="General"
-        android:icon="@drawable/ic_general" />
+        android:icon="@drawable/ic_general"
+        app:showAsAction="always" />
 
-    <!-- Health Category -->
     <item
         android:id="@+id/category_health"
         android:title="Health"
-        android:icon="@drawable/ic_health" />
+        android:icon="@drawable/ic_health"
+        app:showAsAction="always" />
 
-    <!-- Science Category -->
     <item
         android:id="@+id/category_science"
         android:title="Science"
-        android:icon="@drawable/ic_science" />
+        android:icon="@drawable/ic_science"
+        app:showAsAction="always" />
 
-    <!-- Sports Category -->
     <item
         android:id="@+id/category_sports"
         android:title="Sports"
-        android:icon="@drawable/ic_sports" />
+        android:icon="@drawable/ic_sports"
+        app:showAsAction="always" />
 
-    <!-- Technology Category -->
     <item
         android:id="@+id/category_technology"
         android:title="Technology"
-        android:icon="@drawable/ic_technology" />
+        android:icon="@drawable/ic_technology"
+        app:showAsAction="always" />
+
 </menu>

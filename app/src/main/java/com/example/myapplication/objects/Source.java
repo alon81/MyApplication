@@ -1,4 +1,4 @@
-package com.example.myapplication;
+package com.example.myapplication.objects;
 
 public class Source {
     private String id;
@@ -18,4 +18,3 @@ public class Source {
     public String getCategory() { return category; }
     public void setCategory(String category) { this.category = category; }
 }
-

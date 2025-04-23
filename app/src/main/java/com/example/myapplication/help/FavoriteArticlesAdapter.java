@@ -1,4 +1,4 @@
-package com.example.myapplication;
+package com.example.myapplication.help;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
@@ -14,6 +14,8 @@ import android.widget.Toast;
 
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.myapplication.R;
+import com.example.myapplication.objects.Article;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.List;
@@ -53,8 +55,8 @@ public class FavoriteArticlesAdapter extends RecyclerView.Adapter<FavoriteArticl
             context.startActivity(intent);
         });
 
-        holder.starImageView.setImageResource(R.drawable.ic_star_filled);
-        holder.starImageView.setColorFilter(Color.YELLOW);
+        holder.starImageView.setImageResource(R.drawable.ic_fav);
+        holder.starImageView.setColorFilter(Color.RED);
 
         holder.starImageView.setOnClickListener(v -> {
             removeFromFavorites(article.getUrl());

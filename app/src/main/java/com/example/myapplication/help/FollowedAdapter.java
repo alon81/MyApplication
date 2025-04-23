@@ -1,4 +1,4 @@
-package com.example.myapplication;
+package com.example.myapplication.help;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -8,6 +8,8 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.myapplication.R;
 
 import java.util.List;
 public class FollowedAdapter extends RecyclerView.Adapter<FollowedAdapter.ViewHolder> {

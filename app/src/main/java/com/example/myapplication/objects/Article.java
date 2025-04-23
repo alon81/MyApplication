@@ -1,6 +1,6 @@
-package com.example.myapplication;
+package com.example.myapplication.objects;
 
-class Article {
+public class Article {
     private Source source;
     private String author;
     private String title;

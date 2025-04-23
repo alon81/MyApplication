@@ -1,4 +1,4 @@
-package com.example.myapplication;
+package com.example.myapplication.api;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;

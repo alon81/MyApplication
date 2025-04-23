@@ -1,4 +1,7 @@
-package com.example.myapplication;
+package com.example.myapplication.api;
+
+import com.example.myapplication.objects.NewsResponse;
+import com.example.myapplication.objects.SourcesResponse;
 
 import java.util.Map;
 
@@ -30,6 +33,5 @@ public interface IApiService {
     @GET("v2/top-headlines")
     Call<NewsResponse> getArticles(@QueryMap Map<String, String> options);
 }
-
 
 

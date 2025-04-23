@@ -4,6 +4,7 @@
     android:layout_height="wrap_content"
     android:layout_margin="12dp"
     android:backgroundTint="#121212"
+    android:background="#1A1A1A"
     android:elevation="8dp"
     app:cardCornerRadius="12dp"
     app:cardElevation="6dp">
@@ -23,7 +24,7 @@
             android:layout_alignParentTop="true"
             android:gravity="center_vertical">
 
-            <!-- Favorite Star -->
+            <!-- Favorite -->
             <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/imgFavoriteStar"
                 android:layout_width="32dp"
@@ -31,17 +32,19 @@
                 android:contentDescription="Favorite Star"
                 android:tint="#B0B0B0"
                 android:layout_marginEnd="12dp"
-                app:srcCompat="@drawable/ic_star_border" />
+                app:srcCompat="@drawable/ic_fav" />
 
             <!-- Send Email Arrow -->
             <ImageView
                 android:id="@+id/imgSendEmail"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:src="@drawable/ic_arrow_right"
+                android:src="@drawable/ic_share"
                 android:contentDescription="Send Article Email"
                 android:clickable="true"
-                android:focusable="true" />
+                android:focusable="true"
+                app:tint="#B0B0B0" />
+
         </LinearLayout>
 
         <!-- Right Side: Title and Source -->

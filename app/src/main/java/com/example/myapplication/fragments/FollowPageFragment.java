@@ -1,33 +1,36 @@
-package com.example.myapplication;
+package com.example.myapplication.fragments;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.PopupMenu;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.myapplication.help.FirestoreHelper;
+import com.example.myapplication.help.FollowedAdapter;
+import com.example.myapplication.api.NewsRepository;
+import com.example.myapplication.R;
+import com.example.myapplication.objects.Source;
+import com.example.myapplication.objects.SourcesResponse;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,26 +42,29 @@ public class FollowPageFragment extends Fragment {
 
     private RecyclerView rvFollowedSources;
     private FollowedAdapter followedAdapter;
-    private ProgressBar progressBar;
     private FirestoreHelper firestoreHelper;
     private EditText editTextSourceName;
     private Button buttonAddSource;
-    private Spinner categorySpinner;
+    private String selectedCategory ;
     private Button buttonAddCategorySources;
+    private ImageButton buttonSelectCategory;
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_follow_page, container, false);
 
-        //  toolbar
-
+        // Initialize buttons
         buttonAddSource = view.findViewById(R.id.buttonAddSource);
         buttonAddSource.setOnClickListener(this::onAddSourceButtonClicked);
-        setHasOptionsMenu(true);
 
-        // Initialize views and helpers
+        // Set up for category selection
+        buttonSelectCategory = view.findViewById(R.id.imageButtonSelectCategory); // Ensure correct ID
+        buttonAddCategorySources = view.findViewById(R.id.buttonAddCategorySources);
+        Button removeAllSourcesButton = view.findViewById(R.id.removeAllSourcesButton);
+
+        // Initialize other views
         rvFollowedSources = view.findViewById(R.id.rvFollowedSources);
-        progressBar = view.findViewById(R.id.progressBar);
         editTextSourceName = view.findViewById(R.id.editTextSourceName);
         firestoreHelper = new FirestoreHelper(getContext());
 
@@ -67,41 +73,80 @@ public class FollowPageFragment extends Fragment {
         followedAdapter = new FollowedAdapter(getContext(), firestoreHelper);
         rvFollowedSources.setAdapter(followedAdapter);
 
-        categorySpinner = view.findViewById(R.id.categorySpinner);
-        buttonAddCategorySources = view.findViewById(R.id.buttonAddCategorySources);
-        Button removeAllSourcesButton = view.findViewById(R.id.removeAllSourcesButton);
-        removeAllSourcesButton.setOnClickListener(v -> {
-            removeAllFollowedSources();
+        // Set up remove all sources button
+        removeAllSourcesButton.setOnClickListener(v -> removeAllFollowedSources());
+
+        // Category selection via PopupMenu
+        buttonSelectCategory.setOnClickListener(v -> {
+            PopupMenu popup = new PopupMenu(getContext(), buttonSelectCategory);
+            popup.getMenuInflater().inflate(R.menu.menu_filter, popup.getMenu());
+
+            // Force the icons to be displayed in the PopupMenu
+            try {
+                Field[] fields = popup.getClass().getDeclaredFields();
+                for (Field field : fields) {
+                    if ("mPopup".equals(field.getName())) {
+                        field.setAccessible(true);
+                        Object menuPopupHelper = field.get(popup);
+                        Class<?> classPopupHelper = Class.forName(menuPopupHelper.getClass().getName());
+                        Method setForceShowIcon = classPopupHelper.getMethod("setForceShowIcon", boolean.class);
+                        setForceShowIcon.invoke(menuPopupHelper, true);
+                        break;
+                    }
+                }
+            } catch (Exception e) {
+                Log.e("PopupMenu", "Error forcing menu icons to show", e);
+            }
+
+            // Handle category item selection
+            popup.setOnMenuItemClickListener(item -> {
+                if (item.getItemId() == R.id.category_business) {
+                    selectedCategory = "business";
+                } else if (item.getItemId() == R.id.category_entertainment) {
+                    selectedCategory = "entertainment";
+                } else if (item.getItemId() == R.id.category_general) {
+                    selectedCategory = "general";
+                } else if (item.getItemId() == R.id.category_health) {
+                    selectedCategory = "health";
+                } else if (item.getItemId() == R.id.category_science) {
+                    selectedCategory = "science";
+                } else if (item.getItemId() == R.id.category_sports) {
+                    selectedCategory = "sports";
+                } else if (item.getItemId() == R.id.category_technology) {
+                    selectedCategory = "technology";
+                }
+
+                // Show a toast with the selected category
+                Toast.makeText(getContext(), "Selected: " + selectedCategory, Toast.LENGTH_SHORT).show();
+                return true;
+            });
+
+            // Show the popup menu
+            popup.show();
         });
 
-
-
-// Set up category options
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(),
-                android.R.layout.simple_spinner_item,
-                new String[]{"business", "entertainment", "general", "health", "science", "sports", "technology"});
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        categorySpinner.setAdapter(adapter);
-
-// Button click logic
+        // Handle adding sources by selected category
         buttonAddCategorySources.setOnClickListener(v -> {
-            String selectedCategory = categorySpinner.getSelectedItem().toString();
-            addSourcesByCategory(selectedCategory);
+            if (selectedCategory != null) {
+                addSourcesByCategory(selectedCategory);
+                Toast.makeText(getContext(), "Sources added for category: " + selectedCategory, Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getContext(), "Please select a category first", Toast.LENGTH_SHORT).show();
+            }
         });
 
-
+        // Load followed sources
         loadFollowedSources();
 
         return view;
     }
+
     private void addSourcesByCategory(String category) {
-        progressBar.setVisibility(View.VISIBLE);
         NewsRepository newsRepository = new NewsRepository();
 
         newsRepository.getSources(new Callback<SourcesResponse>() {
             @Override
             public void onResponse(Call<SourcesResponse> call, Response<SourcesResponse> response) {
-                progressBar.setVisibility(View.GONE);
                 if (response.isSuccessful() && response.body() != null) {
                     List<Source> matchingSources = new ArrayList<>();
                     for (Source source : response.body().getSources()) {
@@ -126,14 +171,13 @@ public class FollowPageFragment extends Fragment {
 
                     Toast.makeText(getContext(), "Added " + matchingSources.size() + " sources.", Toast.LENGTH_SHORT).show();
                     loadFollowedSources();
-                    } else {
+                } else {
                     Toast.makeText(getContext(), "Failed to fetch sources.", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<SourcesResponse> call, Throwable t) {
-                progressBar.setVisibility(View.GONE);
                 Toast.makeText(getContext(), "Error connecting to API.", Toast.LENGTH_SHORT).show();
             }
         });
@@ -172,9 +216,7 @@ public class FollowPageFragment extends Fragment {
 
 
     private void loadFollowedSources() {
-        progressBar.setVisibility(View.VISIBLE);
         firestoreHelper.loadFollowedSources(followedSources -> {
-            progressBar.setVisibility(View.GONE);
             if (followedSources.isEmpty()) {
                 Toast.makeText(getContext(), "No followed sources yet!", Toast.LENGTH_SHORT).show();
             }

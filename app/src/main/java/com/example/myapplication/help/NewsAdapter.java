@@ -1,11 +1,7 @@
-package com.example.myapplication;
+package com.example.myapplication.help;
 
 import static android.app.PendingIntent.getActivity;
-import static androidx.core.content.ContentProviderCompat.requireContext;
-import static androidx.core.content.ContextCompat.startActivity;
-import static java.security.AccessController.getContext;
 
-import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
@@ -15,14 +11,14 @@ import android.speech.tts.TextToSpeech;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.myapplication.R;
+import com.example.myapplication.objects.Article;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.auth.FirebaseAuth;
 
@@ -33,14 +29,14 @@ import java.util.Set;
 
 public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHolder> {
 
-    private List<Article> articleList;
+    private final List<Article> articleList;
     private TextToSpeech textToSpeech;
-    private FirebaseFirestore db;
-    private String userId;
-    private Context context;  // Store the context for Toast
+    private final FirebaseFirestore db;
+    private final String userId;
+    private final Context context;  // Store the context for Toast
 
     // In-memory storage for favorited URLs
-    private Set<String> favoriteUrls = new HashSet<>();
+    private final Set<String> favoriteUrls = new HashSet<>();
 
     // Update constructor to accept Context as a parameter
     public NewsAdapter(List<Article> articleList, Context context) {
@@ -94,8 +90,8 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHol
 
             // Star icon: toggle favorite state
             boolean isFavorited = article.isFavorited();  // Check the favorited state from the Article object
-            holder.starImageView.setImageResource(isFavorited ? R.drawable.ic_star_filled : R.drawable.ic_star_border);
-            holder.starImageView.setColorFilter(isFavorited ? Color.YELLOW : Color.GRAY);
+            holder.starImageView.setImageResource(R.drawable.ic_fav);
+            holder.starImageView.setColorFilter(isFavorited ? Color.RED : Color.GRAY);
 
             holder.starImageView.setOnClickListener(v -> {
                 if (isFavorited) {

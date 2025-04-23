@@ -1,4 +1,4 @@
-package com.example.myapplication;
+package com.example.myapplication.fragments;
 
 import android.content.Context;
 import android.content.Intent;
@@ -8,9 +8,7 @@ import android.os.Handler;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
@@ -19,35 +17,32 @@ import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.myapplication.objects.Article;
+import com.example.myapplication.help.NewsAdapter;
+import com.example.myapplication.api.NewsRepository;
+import com.example.myapplication.objects.NewsResponse;
+import com.example.myapplication.R;
+import com.example.myapplication.api.ApiCallBack;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 public class ClockFragment extends Fragment {
 
     private List<String> favoriteUrls = new ArrayList<>();
@@ -140,14 +135,28 @@ public class ClockFragment extends Fragment {
 
 
     private void showFilterMenu(View anchor) {
-        // Create a PopupMenu object with the given context and anchor view
-        PopupMenu popup = new PopupMenu(getContext(), anchor);
+        // Create a PopupMenu attached to the anchor view
+        PopupMenu popup = new PopupMenu(requireContext(), anchor);
+        popup.getMenuInflater().inflate(R.menu.menu_filter, popup.getMenu());
 
-        // Inflate the menu resource into the popup menu
-        MenuInflater inflater = popup.getMenuInflater();
-        inflater.inflate(R.menu.menu_filter, popup.getMenu());
+        // Force menu icons to show using reflection
+        try {
+            Field[] fields = popup.getClass().getDeclaredFields();
+            for (Field field : fields) {
+                if ("mPopup".equals(field.getName())) {
+                    field.setAccessible(true);
+                    Object menuPopupHelper = field.get(popup);
+                    Class<?> classPopupHelper = Class.forName(menuPopupHelper.getClass().getName());
+                    Method setForceShowIcon = classPopupHelper.getMethod("setForceShowIcon", boolean.class);
+                    setForceShowIcon.invoke(menuPopupHelper, true);
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            Log.e("PopupMenu", "Error forcing menu icons to show", e);
+        }
 
-        // Set a listener to handle item clicks in the popup menu
+        // Handle menu item selection
         popup.setOnMenuItemClickListener(item -> {
             String selectedCategory = "none";  // Default category
 
@@ -170,23 +179,20 @@ public class ClockFragment extends Fragment {
                 selectedCategory = "technology";
             }
 
-            // If a valid category is selected, save it to SharedPreferences and fetch articles
             if (selectedCategory != null) {
                 Log.d("CategoryFilter", "Selected category: " + selectedCategory);
                 SharedPreferences prefs = requireContext().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
                 prefs.edit().putString("selected_category", selectedCategory).apply();
-                fetchArticlesWithFilter(selectedCategory);  // Fetch filtered articles based on category
+                fetchArticlesWithFilter(selectedCategory);
                 Toast.makeText(getContext(), "Filter applied: " + selectedCategory, Toast.LENGTH_SHORT).show();
             }
 
-            return true;  // Return true to indicate that the item was handled
+            return true;
         });
 
-        // Show the popup menu
         popup.show();
-
-
     }
+
     private void fetchArticlesWithFilter(String selectedCategory) {
         Log.d("CategoryFilter", "============================");
         Log.d("CategoryFilter", "Fetch initiated. Category: " + selectedCategory);

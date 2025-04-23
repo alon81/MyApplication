@@ -22,14 +22,17 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MyApplication"
         tools:targetApi="30">
-        <receiver android:name=".NotificationReceiver" />
+        <receiver android:name=".help.NotificationHelper"
+            tools:ignore="Instantiatable" />
+        <receiver android:name=".help.NotificationWorker" android:exported="true"
+            tools:ignore="Instantiatable" />
 
         <activity
-            android:name=".HomeActivity"
+            android:name=".activity.HomeActivity"
             android:exported="false" />
 
         <activity
-            android:name=".SplashActivity"
+            android:name=".activity.SplashActivity"
             android:exported="true"
             android:label="Splash Screen"
             android:theme="@style/Theme.MyApplication">
@@ -40,11 +43,11 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".MainActivity">
+            android:name=".activity.MainActivity">
 
         </activity>
         <activity
-            android:name=".RegisterActivity"
+            android:name=".activity.RegisterActivity"
             android:exported="false" />
     </application>
 

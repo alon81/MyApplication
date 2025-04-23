@@ -1,45 +1,34 @@
 
-package com.example.myapplication;
-import android.app.AlertDialog;
+package com.example.myapplication.fragments;
 import android.app.TimePickerDialog;
-import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.icu.util.Calendar;
-import android.net.Uri;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.work.OneTimeWorkRequest;
-import androidx.work.WorkManager;
-import androidx.work.WorkRequest;
 
+import com.example.myapplication.help.NotificationScheduler;
+import com.example.myapplication.objects.Article;
+import com.example.myapplication.help.FavoriteArticlesAdapter;
+import com.example.myapplication.activity.MainActivity;
+
+import com.example.myapplication.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
@@ -49,7 +38,6 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 
 public class ChangeInfoFragment extends Fragment {
 
@@ -160,28 +148,16 @@ public class ChangeInfoFragment extends Fragment {
 
         if (!isEnabled) {
             showTimePickerDialog(); // Pick time and schedule
-            updateNotificationIcon(true); // Update the icon to "on"
         } else {
             cancelNotifications();
             SharedPreferences.Editor editor = prefs.edit();
             editor.putBoolean(KEY_NOTIF_ENABLED, false);
             editor.apply();
             Toast.makeText(getContext(), "Notifications Disabled", Toast.LENGTH_SHORT).show();
-            updateNotificationIcon(false); // Update the icon to "off"
         }
     }
 
-    private void updateNotificationIcon(boolean isEnabled) {
-        ImageView notificationIcon = getView().findViewById(R.id.notificationButton); // Replace with your actual ImageView reference
 
-        if (isEnabled) {
-            // Set the notification icon to "on"
-            notificationIcon.setImageResource(R.drawable.baseline_alarm_on_24);
-        } else {
-            // Set the notification icon to "off"
-            notificationIcon.setImageResource(R.drawable.baseline_alarm_off_24);
-        }
-    }
 
     private void showTimePickerDialog() {
         Calendar currentTime = Calendar.getInstance();
@@ -210,37 +186,11 @@ public class ChangeInfoFragment extends Fragment {
     }
 
     private void scheduleDailyNotification(int hour, int minute) {
-        long delay = calculateDelay(hour, minute);
-
-        WorkRequest request = new OneTimeWorkRequest.Builder(NotificationWorker.class)
-                .setInitialDelay(delay, TimeUnit.MILLISECONDS)
-                .addTag("daily_notification")
-                .build();
-
-        WorkManager.getInstance(requireContext()).enqueue(request);
-    }
-
-    private long calculateDelay(int hour, int minute) {
-        Calendar now = Calendar.getInstance();
-        Calendar target = Calendar.getInstance();
-        target.set(Calendar.HOUR_OF_DAY, hour);
-        target.set(Calendar.MINUTE, minute);
-        target.set(Calendar.SECOND, 0);
-        target.set(Calendar.MILLISECOND, 0);
-
-        if (target.before(now)) {
-            target.add(Calendar.DAY_OF_YEAR, 1); // schedule for next day
-        }
-
-        return target.getTimeInMillis() - now.getTimeInMillis();
+        NotificationScheduler.setDailyNotification(requireContext(), hour, minute);
     }
     private void cancelNotifications() {
-        WorkManager.getInstance(requireContext()).cancelAllWorkByTag("daily_notification");
+        NotificationScheduler.cancelNotification(requireContext());
     }
-
-
-
-
     // Open the favorites popup when star is clicked
     private void openFavoritesPopup() {
         // Inflate the popup layout
@@ -327,7 +277,6 @@ public class ChangeInfoFragment extends Fragment {
         super.onStart();
         SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         boolean isEnabled = prefs.getBoolean(KEY_NOTIF_ENABLED, false);
-        updateNotificationIcon(isEnabled); // Set the icon based on the current state
     }
 
 

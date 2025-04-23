@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="#121212"
-    tools:context=".ChangeInfoFragment">
+    tools:context=".fragments.ChangeInfoFragment">
 
     <!-- ConstraintLayout -->
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -21,8 +21,9 @@
             android:layout_marginEnd="16dp"
             android:background="@android:color/transparent"
             android:contentDescription="Favorites"
-            android:src="@drawable/ic_star_filled"
+            android:src="@drawable/ic_fav"
             app:layout_constraintEnd_toEndOf="parent"
+            app:tint="#FFFFFF"
             app:layout_constraintTop_toTopOf="parent" />
 
         <!-- Notification Button -->
@@ -34,9 +35,10 @@
             android:layout_marginStart="16dp"
             android:background="@android:color/transparent"
             android:contentDescription="Notifications"
-            android:src="@drawable/baseline_alarm_off_24"
+            android:src="@drawable/ic_noti"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="#FFFFFF" />
 
         <!-- Email Label -->
         <TextView
@@ -44,13 +46,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Email:"
-            android:textSize="20sp"
-            android:textColor="#003366"
+            android:textSize="22sp"
+            android:textColor="#03DAC5"
             android:textStyle="bold"
-            android:layout_marginTop="60dp"
+            android:layout_marginTop="80dp"
             app:layout_constraintTop_toBottomOf="@id/notificationButton"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent"
+            android:gravity="center" />
 
         <!-- Email Text -->
         <TextView
@@ -63,7 +66,8 @@
             android:layout_marginTop="8dp"
             app:layout_constraintTop_toBottomOf="@id/txtEmailLabel"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent"
+            android:gravity="center" />
 
         <!-- First Name Label -->
         <TextView
@@ -71,8 +75,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="First Name:"
-            android:textSize="20sp"
-            android:textColor="#003366"
+            android:textSize="22sp"
+            android:textColor="#03DAC5"
             android:textStyle="bold"
             android:layout_marginTop="30dp"
             app:layout_constraintTop_toBottomOf="@id/txtEmail"
@@ -92,11 +96,13 @@
             android:inputType="textPersonName"
             android:minHeight="50dp"
             android:padding="12dp"
-            android:backgroundTint="#003366"
+            android:backgroundTint="#03DAC5"
             android:layout_gravity="center"
             app:layout_constraintTop_toBottomOf="@id/txtFirstNameLabel"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent"
+            android:background="@android:color/transparent"
+            />
 
         <!-- Last Name Label -->
         <TextView
@@ -104,8 +110,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Last Name:"
-            android:textSize="20sp"
-            android:textColor="#003366"
+            android:textSize="22sp"
+            android:textColor="#03DAC5"
             android:textStyle="bold"
             android:layout_marginTop="30dp"
             app:layout_constraintTop_toBottomOf="@id/etFirstName"
@@ -125,7 +131,7 @@
             android:inputType="textPersonName"
             android:minHeight="50dp"
             android:padding="12dp"
-            android:backgroundTint="#003366"
+            android:backgroundTint="#03DAC5"
             android:layout_gravity="center"
             app:layout_constraintTop_toBottomOf="@id/txtLastNameLabel"
             app:layout_constraintStart_toStartOf="parent"
@@ -139,7 +145,7 @@
             android:text="Save Changes"
             android:textSize="18sp"
             android:textColor="#FFFFFF"
-            android:backgroundTint="#003366"
+            android:backgroundTint="#03DAC5"
             android:padding="14dp"
             android:layout_marginTop="40dp"
             android:layout_marginHorizontal="40dp"
@@ -154,7 +160,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Log Out"
-            android:textColor="#003366"
+            android:textColor="#FF5252"
             android:layout_marginTop="16dp"
             android:background="@android:color/transparent"
             app:layout_constraintTop_toBottomOf="@id/btnSaveChanges"
