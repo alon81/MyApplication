@@ -1,4 +1,5 @@
 package com.example.myapplication.help;
+
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
@@ -14,12 +15,15 @@ import android.widget.Toast;
 
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.myapplication.R;
 import com.example.myapplication.objects.Article;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 public class FavoriteArticlesAdapter extends RecyclerView.Adapter<FavoriteArticlesAdapter.FavoriteViewHolder> {
 
@@ -28,6 +32,7 @@ public class FavoriteArticlesAdapter extends RecyclerView.Adapter<FavoriteArticl
     private String userId;
     private Context context;
     private TextToSpeech textToSpeech;
+    private final Set<String> favoriteUrls = new HashSet<>();
 
     public FavoriteArticlesAdapter(Context context, List<Article> favoriteArticles, String userId, FirebaseFirestore db, TextToSpeech textToSpeech) {
         this.context = context;
@@ -36,7 +41,6 @@ public class FavoriteArticlesAdapter extends RecyclerView.Adapter<FavoriteArticl
         this.db = db;
         this.textToSpeech = textToSpeech;
     }
-
 
     @Override
     public FavoriteViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -49,6 +53,20 @@ public class FavoriteArticlesAdapter extends RecyclerView.Adapter<FavoriteArticl
         Article article = favoriteArticles.get(position);
         holder.titleTextView.setText(article.getTitle());
         holder.sourceTextView.setText(article.getSource().getName());
+
+        String imageUrl = article.getUrlToImage();
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            Glide.with(context)
+                    .load(imageUrl)
+                    .placeholder(R.mipmap.ic_launcher)
+//                        .error(R.mipmap.ic_launcher)
+                    .into(holder.articleImageView);
+        } else {
+            Glide.with(context)
+                    .load(R.drawable.ic_error)
+                    .into(holder.articleImageView);
+        }
+        holder.articleImageView.setVisibility(View.VISIBLE); // Always visible
 
         holder.sourceTextView.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(article.getUrl()));
@@ -118,7 +136,7 @@ public class FavoriteArticlesAdapter extends RecyclerView.Adapter<FavoriteArticl
 
     public static class FavoriteViewHolder extends RecyclerView.ViewHolder {
         TextView titleTextView, sourceTextView;
-        ImageView starImageView, shareButton;
+        ImageView starImageView, shareButton, articleImageView;
 
         public FavoriteViewHolder(View itemView) {
             super(itemView);
@@ -126,6 +144,7 @@ public class FavoriteArticlesAdapter extends RecyclerView.Adapter<FavoriteArticl
             sourceTextView = itemView.findViewById(R.id.txtArticleSource);
             starImageView = itemView.findViewById(R.id.btnFavorite);
             shareButton = itemView.findViewById(R.id.btnShare);
+            articleImageView = itemView.findViewById(R.id.imgArticleImage); // ← Added ImageView binding
         }
     }
 }

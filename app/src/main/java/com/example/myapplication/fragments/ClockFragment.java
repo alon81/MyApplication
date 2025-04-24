@@ -330,14 +330,14 @@ public class ClockFragment extends Fragment {
 
                 String greeting;
                 if (hourOfDay >= 19 || hourOfDay < 6) {
-                    greeting = "Good night, " + firstName + " " + lastName + "!";
+                    greeting = "Good night, " + firstName + " " + lastName + " ";
                 } else if (hourOfDay >= 6 && hourOfDay < 12) {
-                    greeting = "Good morning, " + firstName + " " + lastName + "!";
+                    greeting = "Good morning, " + firstName + " " + lastName + " ";
                 } else {
-                    greeting = "Good afternoon, " + firstName + " " + lastName + "!";
+                    greeting = "Good afternoon, " + firstName + " " + lastName + " ";
                 }
 
-                txtGreeting.setText(greeting);
+                txtGreeting.setText(greeting + "welcome to Newsflow" );
             }
         });
     }

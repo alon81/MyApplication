@@ -56,17 +56,21 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHol
             holder.sourceTextView.setText(article.getSource().getName());
 
             // Load article image using Glide
+            // Load article image using Glide
             String imageUrl = article.getUrlToImage();
             if (imageUrl != null && !imageUrl.isEmpty()) {
                 Glide.with(context)
                         .load(imageUrl)
-//                        .placeholder(R.drawable.ic_logo_background)
-//                        .error(R.drawable.ic_logo_background)
+                        .placeholder(R.mipmap.ic_launcher)
+//                        .error(R.mipmap.ic_launcher)
                         .into(holder.articleImageView);
-                holder.articleImageView.setVisibility(View.VISIBLE);
             } else {
-                holder.articleImageView.setVisibility(View.GONE);
+                // Load default image if imageUrl is null or empty
+                Glide.with(context)
+                        .load(R.drawable.ic_error) // Replace with your default image
+                        .into(holder.articleImageView);
             }
+            holder.articleImageView.setVisibility(View.VISIBLE); // Always visible
 
             String articleUrl = article.getUrl();
 
