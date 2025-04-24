@@ -55,7 +55,7 @@ public class FavoriteArticlesAdapter extends RecyclerView.Adapter<FavoriteArticl
             context.startActivity(intent);
         });
 
-        holder.starImageView.setImageResource(R.drawable.ic_fav);
+        holder.starImageView.setImageResource(R.drawable.ic_fav_fill);
         holder.starImageView.setColorFilter(Color.RED);
 
         holder.starImageView.setOnClickListener(v -> {
@@ -124,8 +124,8 @@ public class FavoriteArticlesAdapter extends RecyclerView.Adapter<FavoriteArticl
             super(itemView);
             titleTextView = itemView.findViewById(R.id.txtArticleTitle);
             sourceTextView = itemView.findViewById(R.id.txtArticleSource);
-            starImageView = itemView.findViewById(R.id.imgFavoriteStar);
-            shareButton = itemView.findViewById(R.id.imgSendEmail);
+            starImageView = itemView.findViewById(R.id.btnFavorite);
+            shareButton = itemView.findViewById(R.id.btnShare);
         }
     }
 }

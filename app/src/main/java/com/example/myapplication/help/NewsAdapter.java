@@ -1,7 +1,5 @@
 package com.example.myapplication.help;
 
-import static android.app.PendingIntent.getActivity;
-
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
@@ -17,10 +15,11 @@ import android.widget.Toast;
 
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.myapplication.R;
 import com.example.myapplication.objects.Article;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashSet;
 import java.util.List;
@@ -33,25 +32,22 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHol
     private TextToSpeech textToSpeech;
     private final FirebaseFirestore db;
     private final String userId;
-    private final Context context;  // Store the context for Toast
-
-    // In-memory storage for favorited URLs
+    private final Context context;
     private final Set<String> favoriteUrls = new HashSet<>();
 
-    // Update constructor to accept Context as a parameter
     public NewsAdapter(List<Article> articleList, Context context) {
         this.articleList = articleList;
-        this.context = context;  // Store the context
+        this.context = context;
         db = FirebaseFirestore.getInstance();
-        userId = FirebaseAuth.getInstance().getCurrentUser().getUid();  // Get userId here
+        userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
     }
-
 
     @Override
     public ArticleViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_article, parent, false);
         return new ArticleViewHolder(view);
     }
+
     @Override
     public void onBindViewHolder(ArticleViewHolder holder, int position) {
         if (position >= 0 && position < articleList.size()) {
@@ -59,9 +55,21 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHol
             holder.titleTextView.setText(article.getTitle());
             holder.sourceTextView.setText(article.getSource().getName());
 
+            // Load article image using Glide
+            String imageUrl = article.getUrlToImage();
+            if (imageUrl != null && !imageUrl.isEmpty()) {
+                Glide.with(context)
+                        .load(imageUrl)
+//                        .placeholder(R.drawable.ic_logo_background)
+//                        .error(R.drawable.ic_logo_background)
+                        .into(holder.articleImageView);
+                holder.articleImageView.setVisibility(View.VISIBLE);
+            } else {
+                holder.articleImageView.setVisibility(View.GONE);
+            }
+
             String articleUrl = article.getUrl();
 
-            // Set URL dot clickable
             holder.sourceTextView.setOnClickListener(v -> {
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(articleUrl));
                 v.getContext().startActivity(intent);
@@ -70,11 +78,7 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHol
             holder.titleTextView.setOnClickListener(v -> {
                 if (textToSpeech != null) {
                     String title = article.getTitle();
-
-                    // Detect Hebrew (basic check based on Unicode range)
                     boolean isHebrew = title.matches(".*\\p{InHebrew}.*");
-
-                    // Set language accordingly
                     Locale targetLocale = isHebrew ? new Locale("he") : Locale.US;
                     int result = textToSpeech.setLanguage(targetLocale);
 
@@ -86,37 +90,27 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHol
                 }
             });
 
-
-
-            // Star icon: toggle favorite state
-            boolean isFavorited = article.isFavorited();  // Check the favorited state from the Article object
-            holder.starImageView.setImageResource(R.drawable.ic_fav);
+            boolean isFavorited = article.isFavorited();
+            holder.starImageView.setImageResource(isFavorited ? R.drawable.ic_fav_fill : R.drawable.ic_fav);
             holder.starImageView.setColorFilter(isFavorited ? Color.RED : Color.GRAY);
 
             holder.starImageView.setOnClickListener(v -> {
                 if (isFavorited) {
-                    article.setFavorited(false);  // Unfavorite the article
+                    article.setFavorited(false);
                     favoriteUrls.remove(articleUrl);
-                    removeFromFavorites(articleUrl); // Remove from Firebase
+                    removeFromFavorites(articleUrl);
                 } else {
-                    article.setFavorited(true);  // Favorite the article
+                    article.setFavorited(true);
                     favoriteUrls.add(articleUrl);
-                    addToFavorites(article); // Add to Firebase
+                    addToFavorites(article);
                 }
-                notifyItemChanged(position);  // Notify that the item has changed (star icon)
+                notifyItemChanged(position);
             });
 
-            // Email button to send the article via email
-            holder.shareButton.setOnClickListener(v -> {
-                shareArticle(article);
-            });
+            holder.shareButton.setOnClickListener(v -> shareArticle(article));
         }
     }
 
-    // Method to show the email dialog
-    // Method to show the email dialog
-    // Method to show the email dialog
-    // Method to show the email dialog
     private void shareArticle(Article article) {
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
         shareIntent.setType("text/plain");
@@ -133,13 +127,9 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHol
         }
     }
 
-
-
-    // Method to show the toast message
     private void showToast(String message) {
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
     }
-
 
     @Override
     public int getItemCount() {
@@ -148,17 +138,16 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHol
 
     public static class ArticleViewHolder extends RecyclerView.ViewHolder {
 
-        TextView titleTextView, sourceTextView, urlTextView;
-        ImageView starImageView, shareButton;  // Add the button to send email
-
+        TextView titleTextView, sourceTextView;
+        ImageView starImageView, shareButton, articleImageView;
 
         public ArticleViewHolder(View itemView) {
             super(itemView);
             titleTextView = itemView.findViewById(R.id.txtArticleTitle);
-            //sourceTextView = itemView.findViewById(R.id.txtArticleSource);
             sourceTextView = itemView.findViewById(R.id.txtArticleSource);
-            starImageView = itemView.findViewById(R.id.imgFavoriteStar);
-            shareButton = itemView.findViewById(R.id.imgSendEmail);  // Initialize the send email button
+            starImageView = itemView.findViewById(R.id.btnFavorite);
+            shareButton = itemView.findViewById(R.id.btnShare);
+            articleImageView = itemView.findViewById(R.id.imgArticleImage);  // ← Added image view
         }
     }
 
@@ -172,46 +161,25 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHol
         this.textToSpeech = tts;
     }
 
-    // Add to Firebase favorites
     private void addToFavorites(Article article) {
-        // Query to check if the article already exists in the favorites collection
         db.collection("user")
                 .document(userId)
                 .collection("favorites")
-                .whereEqualTo("url", article.getUrl())  // Assuming `getUrl()` is a unique identifier for the article
+                .whereEqualTo("url", article.getUrl())
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     if (queryDocumentSnapshots.isEmpty()) {
-                        // Article is not in favorites, so we add it
                         db.collection("user")
                                 .document(userId)
                                 .collection("favorites")
-                                .add(article)  // Use the complete Article object
-                                .addOnSuccessListener(documentReference -> {
-                                    // Success, favorite added
-                                    // Optionally show a success toast or update UI
-                                })
-                                .addOnFailureListener(e -> {
-                                    // Handle error
-                                    // Optionally show a toast with the error message
-                                });
+                                .add(article);
                     } else {
-                        // Article is already in favorites, handle accordingly (e.g., show a toast)
                         showToast("This article is already favorited.");
                     }
                 })
-                .addOnFailureListener(e -> {
-                    // Handle error
-                    // Optionally show a toast with the error message
-                    showToast("Error checking favorites.");
-                });
+                .addOnFailureListener(e -> showToast("Error checking favorites."));
     }
 
-    // Show Toast message (you can use this to notify the user)
-
-
-
-    // Remove from Firebase favorites
     private void removeFromFavorites(String articleUrl) {
         db.collection("user")
                 .document(userId)
@@ -225,19 +193,9 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHol
                                 .document(userId)
                                 .collection("favorites")
                                 .document(documentId)
-                                .delete()
-                                .addOnSuccessListener(aVoid -> {
-                                    // Success, favorite removed
-                                })
-                                .addOnFailureListener(e -> {
-                                    // Handle error
-                                });
+                                .delete();
                     }
                 });
     }
 
-    // Optional getter for next step (Firebase storage)
-    public Set<String> getFavoriteUrls() {
-        return favoriteUrls;
-    }
 }

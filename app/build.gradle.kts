@@ -47,13 +47,15 @@ dependencies {
     implementation(libs.converter.gson)
     implementation(libs.okhttp)
     implementation (libs.logging.interceptor)
-        implementation(libs.material.v180)
-    implementation (libs.work.runtime) // or the latest stable version
+    implementation(libs.material.v180)
+    implementation (libs.work.runtime)
     implementation (libs.guava)
     implementation (libs.play.services.location)
-    dependencies {
-        implementation (libs.appcompat.v120) // Make sure this is included
-    }
+    implementation (libs.appcompat.v120) 
+    implementation (libs.glide)
+    annotationProcessor (libs.compiler)
+
+
 
 
 
