@@ -1,5 +1,7 @@
 package com.example.myapplication.help;
 
+import static java.security.AccessController.getContext;
+
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
@@ -35,6 +37,8 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHol
     private  Set<String> favoriteUrls = new HashSet<>();
     private TextToSpeech textToSpeech;
     private  boolean isFavoritesMode;
+    private FirestoreHelper firestoreHelper;
+
 
     public NewsAdapter(List<Article> articles, Context context, boolean isFavoritesMode) {
         this.articleList = articles;
@@ -43,6 +47,8 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHol
 //        this.textToSpeech = tts;
         this.db = FirebaseFirestore.getInstance();
         this.userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        this.firestoreHelper = new FirestoreHelper(context);
+
     }
 
     @Override
@@ -54,6 +60,7 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHol
     @Override
     public void onBindViewHolder(ArticleViewHolder holder, int position) {
         Article article = articleList.get(position);
+
 
         holder.titleTextView.setText(article.getTitle());
         holder.sourceTextView.setText(article.getSource().getName());
@@ -102,18 +109,18 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHol
 
         holder.starImageView.setOnClickListener(v -> {
             if (isFavoritesMode) {
-                removeFromFavorites(article.getUrl());
+                firestoreHelper.removeFromFavorites(article.getUrl());
                 articleList.remove(position);
                 notifyItemRemoved(position);
             } else {
                 if (article.isFavorited()) {
                     article.setFavorited(false);
                     favoriteUrls.remove(article.getUrl());
-                    removeFromFavorites(article.getUrl());
+                    firestoreHelper.removeFromFavorites(article.getUrl());
                 } else {
                     article.setFavorited(true);
                     favoriteUrls.add(article.getUrl());
-                    addToFavorites(article);
+                    firestoreHelper.addToFavorites(article);
                 }
                 notifyItemChanged(position);
             }
@@ -145,47 +152,6 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHol
 
     public void setTextToSpeech(TextToSpeech tts) {
         this.textToSpeech = tts;
-    }
-
-    private void addToFavorites(Article article) {
-        db.collection("user")
-                .document(userId)
-                .collection("favorites")
-                .whereEqualTo("url", article.getUrl())
-                .get()
-                .addOnSuccessListener(snapshot -> {
-                    if (snapshot.isEmpty()) {
-                        db.collection("user")
-                                .document(userId)
-                                .collection("favorites")
-                                .add(article);
-                    } else {
-                        showToast("This article is already favorited.");
-                    }
-                })
-                .addOnFailureListener(e -> showToast("Error adding to favorites."));
-    }
-
-    private void removeFromFavorites(String articleUrl) {
-        db.collection("user")
-                .document(userId)
-                .collection("favorites")
-                .whereEqualTo("url", articleUrl)
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful() && !task.getResult().isEmpty()) {
-                        String docId = task.getResult().getDocuments().get(0).getId();
-                        db.collection("user")
-                                .document(userId)
-                                .collection("favorites")
-                                .document(docId)
-                                .delete();
-                    }
-                });
-    }
-
-    private void showToast(String msg) {
-        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
     }
 
     public static class ArticleViewHolder extends RecyclerView.ViewHolder {

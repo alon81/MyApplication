@@ -23,11 +23,12 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.myapplication.help.FirestoreHelper;
 import com.example.myapplication.help.NotificationScheduler;
 import com.example.myapplication.objects.Article;
 import com.example.myapplication.help.NewsAdapter;
 import com.example.myapplication.activity.MainActivity;
-
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.example.myapplication.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -47,6 +48,7 @@ public class ChangeInfoFragment extends Fragment {
     private FirebaseAuth fbAuth;
     private FirebaseFirestore db;
     private String userId;
+    private NewsAdapter newsAdapter;
     private ImageView starImageView; // For the star button
     private TextToSpeech textToSpeech; // Text-to-Speech engine
     private static final String PREFS_NAME = "MyPrefs";
@@ -59,7 +61,7 @@ public class ChangeInfoFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_change_info, container, false);
 
-
+        newsAdapter = new NewsAdapter(new ArrayList<>(), getContext(), false);
         etFirstName = view.findViewById(R.id.etFirstName);
         etLastName = view.findViewById(R.id.etLastName);
         txtEmail = view.findViewById(R.id.txtEmail);
@@ -88,27 +90,24 @@ public class ChangeInfoFragment extends Fragment {
         // Initialize Text-to-Speech
         textToSpeech = new TextToSpeech(getContext(), status -> {
             if (status == TextToSpeech.SUCCESS) {
-                // Set default to English first
                 int langResult = textToSpeech.setLanguage(Locale.US);
                 if (langResult == TextToSpeech.LANG_MISSING_DATA || langResult == TextToSpeech.LANG_NOT_SUPPORTED) {
                     Log.e("TextToSpeech", "English language not supported or missing data.");
                 }
 
-                // Try setting Hebrew
                 int hebrewResult = textToSpeech.setLanguage(new Locale("he"));
                 if (hebrewResult == TextToSpeech.LANG_MISSING_DATA || hebrewResult == TextToSpeech.LANG_NOT_SUPPORTED) {
                     Log.e("TextToSpeech", "Hebrew language not supported or missing data.");
-
-                    // Prompt user to install Hebrew voice data
                     Toast.makeText(getContext(), "Hebrew TTS data missing. Redirecting to install it...", Toast.LENGTH_LONG).show();
                     Intent installIntent = new Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
                     requireActivity().startActivity(installIntent);
                 }
-
             } else {
                 Log.e("TextToSpeech", "TTS initialization failed.");
             }
         });
+
+        newsAdapter.setTextToSpeech(textToSpeech);
 
 
         // Check login
@@ -201,7 +200,8 @@ public class ChangeInfoFragment extends Fragment {
         recyclerViewFavorites.setLayoutManager(new LinearLayoutManager(getContext()));
 
         // Load favorite articles
-        loadFavoriteArticles(recyclerViewFavorites);
+        FirestoreHelper firestoreHelper = new FirestoreHelper(requireContext());
+        firestoreHelper.loadFavoriteArticles(requireContext(), recyclerViewFavorites, textToSpeech);
 
         // Create the PopupWindow
         android.widget.PopupWindow popupWindow = new android.widget.PopupWindow(
@@ -222,42 +222,6 @@ public class ChangeInfoFragment extends Fragment {
         // Show the PopupWindow
         popupWindow.showAtLocation(getView(), android.view.Gravity.CENTER, 0, 0);
     }
-
-
-    // Load favorite articles from Firestore and populate RecyclerView
-    private void loadFavoriteArticles(RecyclerView recyclerViewFavorites) {
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser == null) return;
-
-        String userId = currentUser.getUid();
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-
-        TextToSpeech tts = new TextToSpeech(requireContext(), status -> {});
-
-        db.collection("user")
-                .document(userId)
-                .collection("favorites")
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    List<Article> favoriteArticles = new ArrayList<>();
-                    for (DocumentSnapshot doc : queryDocumentSnapshots) {
-                        Article article = doc.toObject(Article.class);
-                        if (article != null) {
-                            article.setFavorited(true); // Optional but useful for visual consistency
-                            favoriteArticles.add(article);
-                        }
-                    }
-
-                    NewsAdapter adapter = new NewsAdapter(favoriteArticles, getContext(), true);
-                    adapter.setTextToSpeech(tts); // Optional: if you want TTS in favorites
-                    recyclerViewFavorites.setAdapter(adapter);
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "Failed to load favorites.", Toast.LENGTH_SHORT).show();
-                });
-    }
-
-    // Adapter for the favorite articles RecyclerView
 
     private void saveChanges() {
         String firstName = etFirstName.getText().toString();

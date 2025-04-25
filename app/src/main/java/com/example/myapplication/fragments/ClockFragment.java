@@ -104,9 +104,18 @@ public class ClockFragment extends Fragment {
 
         newsAdapter.setTextToSpeech(textToSpeech);
 
+        SharedPreferences prefs = requireContext().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        String savedCategory = prefs.getString("selected_category", "none");
+
+        if (savedCategory.equals("none")) {
+            fetchArticlesFromFollowedSources();
+        } else {
+            fetchArticlesWithFilter(savedCategory);
+            Toast.makeText(getContext(), "Filter applied: " + savedCategory, Toast.LENGTH_SHORT).show();
+        }
+
         displayUserGreeting();
         updateClock();
-        fetchArticlesFromFollowedSources();  // Fetch all followed sources' articles
         return view;
     }
 
@@ -118,7 +127,7 @@ public class ClockFragment extends Fragment {
                 if (response != null && response.getArticles() != null && !response.getArticles().isEmpty()) {
                     List<Article> articles = response.getArticles();
                     Log.d("ArticleFetch", "Fetched " + articles.size() + " articles from followed sources.");
-                    loadFavoriteArticles(articles);  // Fetch favorites and update the adapter
+                    loadfavArticles(articles);  // Fetch favorites and update the adapter
                 } else {
                     Log.d("ArticleFetch", "No articles found from followed sources.");
                     Toast.makeText(getContext(), "No articles found for your followed sources.", Toast.LENGTH_SHORT).show();
@@ -158,7 +167,8 @@ public class ClockFragment extends Fragment {
 
         // Handle menu item selection
         popup.setOnMenuItemClickListener(item -> {
-            String selectedCategory = "none";  // Default category
+            
+            String selectedCategory = "";  // Default category
 
             // Determine the selected category based on the item clicked
             if (item.getItemId() == R.id.category_none) {
@@ -259,7 +269,7 @@ public class ClockFragment extends Fragment {
 
                     if (!filteredArticles.isEmpty()) {
                         Log.d("CategoryFilter", "✅ Filtered articles from followed sources: " + filteredArticles.size());
-                        loadFavoriteArticles(filteredArticles); // Load favorite articles and update the adapter
+                        loadfavArticles(filteredArticles); // Load favorite articles and update the adapter
                     } else {
                         Log.w("CategoryFilter", "⚠️ No articles found for the selected category and followed sources.");
                         Toast.makeText(getContext(), "No articles found for this category and your followed sources.", Toast.LENGTH_SHORT).show();
@@ -277,7 +287,7 @@ public class ClockFragment extends Fragment {
             }
         });
     }
-    private void loadFavoriteArticles(List<Article> allArticles) {
+    private void loadfavArticles(List<Article> allArticles) {
         FirebaseFirestore.getInstance().collection("user")
                 .document(FirebaseAuth.getInstance().getCurrentUser().getUid())
                 .collection("favorites")
