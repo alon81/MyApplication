@@ -76,7 +76,7 @@ public class ClockFragment extends Fragment {
         recyclerViewArticles.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerViewArticles.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
 
-        newsAdapter = new NewsAdapter(new ArrayList<>(), getContext());
+        newsAdapter = new NewsAdapter(new ArrayList<>(), getContext(), false);
         recyclerViewArticles.setAdapter(newsAdapter);
 
         ImageButton filterButton = view.findViewById(R.id.button_filter);

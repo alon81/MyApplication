@@ -25,7 +25,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.myapplication.help.NotificationScheduler;
 import com.example.myapplication.objects.Article;
-import com.example.myapplication.help.FavoriteArticlesAdapter;
+import com.example.myapplication.help.NewsAdapter;
 import com.example.myapplication.activity.MainActivity;
 
 import com.example.myapplication.R;
@@ -229,10 +229,10 @@ public class ChangeInfoFragment extends Fragment {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser == null) return;
 
-        String userId = currentUser.getUid();  // ensure it's valid
+        String userId = currentUser.getUid();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-        FirebaseFirestore db = FirebaseFirestore.getInstance();  // get the instance
-        TextToSpeech tts = new TextToSpeech(requireContext(), status -> {}); // basic setup (can be refined)
+        TextToSpeech tts = new TextToSpeech(requireContext(), status -> {});
 
         db.collection("user")
                 .document(userId)
@@ -242,11 +242,18 @@ public class ChangeInfoFragment extends Fragment {
                     List<Article> favoriteArticles = new ArrayList<>();
                     for (DocumentSnapshot doc : queryDocumentSnapshots) {
                         Article article = doc.toObject(Article.class);
-                        if (article != null) favoriteArticles.add(article);
+                        if (article != null) {
+                            article.setFavorited(true); // Optional but useful for visual consistency
+                            favoriteArticles.add(article);
+                        }
                     }
 
-                    FavoriteArticlesAdapter adapter = new FavoriteArticlesAdapter(requireContext(), favoriteArticles, userId, db, tts);
+                    NewsAdapter adapter = new NewsAdapter(favoriteArticles, getContext(), true);
+                    adapter.setTextToSpeech(tts); // Optional: if you want TTS in favorites
                     recyclerViewFavorites.setAdapter(adapter);
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Failed to load favorites.", Toast.LENGTH_SHORT).show();
                 });
     }
 

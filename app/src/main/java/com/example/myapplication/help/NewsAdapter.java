@@ -28,18 +28,21 @@ import java.util.Set;
 
 public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHolder> {
 
-    private final List<Article> articleList;
+    private  List<Article> articleList;
+    private  Context context;
+    private  FirebaseFirestore db;
+    private  String userId;
+    private  Set<String> favoriteUrls = new HashSet<>();
     private TextToSpeech textToSpeech;
-    private final FirebaseFirestore db;
-    private final String userId;
-    private final Context context;
-    private final Set<String> favoriteUrls = new HashSet<>();
+    private  boolean isFavoritesMode;
 
-    public NewsAdapter(List<Article> articleList, Context context) {
-        this.articleList = articleList;
+    public NewsAdapter(List<Article> articles, Context context, boolean isFavoritesMode) {
+        this.articleList = articles;
         this.context = context;
-        db = FirebaseFirestore.getInstance();
-        userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        this.isFavoritesMode = isFavoritesMode;
+//        this.textToSpeech = tts;
+        this.db = FirebaseFirestore.getInstance();
+        this.userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
     }
 
     @Override
@@ -50,109 +53,88 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHol
 
     @Override
     public void onBindViewHolder(ArticleViewHolder holder, int position) {
-        if (position >= 0 && position < articleList.size()) {
-            Article article = articleList.get(position);
-            holder.titleTextView.setText(article.getTitle());
-            holder.sourceTextView.setText(article.getSource().getName());
+        Article article = articleList.get(position);
 
-            // Load article image using Glide
-            // Load article image using Glide
-            String imageUrl = article.getUrlToImage();
-            if (imageUrl != null && !imageUrl.isEmpty()) {
-                Glide.with(context)
-                        .load(imageUrl)
-                        .placeholder(R.mipmap.ic_launcher)
-//                        .error(R.mipmap.ic_launcher)
-                        .into(holder.articleImageView);
-            } else {
-                // Load default image if imageUrl is null or empty
-                Glide.with(context)
-                        .load(R.drawable.ic_error) // Replace with your default image
-                        .into(holder.articleImageView);
-            }
-            holder.articleImageView.setVisibility(View.VISIBLE); // Always visible
+        holder.titleTextView.setText(article.getTitle());
+        holder.sourceTextView.setText(article.getSource().getName());
 
-            String articleUrl = article.getUrl();
+        String imageUrl = article.getUrlToImage();
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            Glide.with(context)
+                    .load(imageUrl)
+                    .placeholder(R.mipmap.ic_launcher)
+                    .into(holder.articleImageView);
+        } else {
+            Glide.with(context)
+                    .load(R.drawable.ic_error) // Default image
+                    .into(holder.articleImageView);
+        }
 
-            holder.sourceTextView.setOnClickListener(v -> {
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(articleUrl));
-                v.getContext().startActivity(intent);
-            });
+        holder.articleImageView.setVisibility(View.VISIBLE);
 
-            holder.titleTextView.setOnClickListener(v -> {
-                if (textToSpeech != null) {
-                    String title = article.getTitle();
-                    boolean isHebrew = title.matches(".*\\p{InHebrew}.*");
-                    Locale targetLocale = isHebrew ? new Locale("he") : Locale.US;
-                    int result = textToSpeech.setLanguage(targetLocale);
+        holder.sourceTextView.setOnClickListener(v -> {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(article.getUrl()));
+            context.startActivity(intent);
+        });
 
-                    if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                        Toast.makeText(context, "Selected language not supported on this device.", Toast.LENGTH_SHORT).show();
-                    } else {
-                        textToSpeech.speak(title, TextToSpeech.QUEUE_FLUSH, null, null);
-                    }
+        holder.titleTextView.setOnClickListener(v -> {
+            if (textToSpeech != null) {
+                String title = article.getTitle();
+                boolean isHebrew = title.matches(".*\\p{InHebrew}.*");
+                Locale targetLocale = isHebrew ? new Locale("he") : Locale.US;
+                int result = textToSpeech.setLanguage(targetLocale);
+                if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                    Toast.makeText(context, "Selected language not supported.", Toast.LENGTH_SHORT).show();
+                } else {
+                    textToSpeech.speak(title, TextToSpeech.QUEUE_FLUSH, null, null);
                 }
-            });
+            }
+        });
 
+        if (isFavoritesMode) {
+            holder.starImageView.setImageResource(R.drawable.ic_fav_fill);
+            holder.starImageView.setColorFilter(Color.RED);
+        } else {
             boolean isFavorited = article.isFavorited();
             holder.starImageView.setImageResource(isFavorited ? R.drawable.ic_fav_fill : R.drawable.ic_fav);
             holder.starImageView.setColorFilter(isFavorited ? Color.RED : Color.GRAY);
+        }
 
-            holder.starImageView.setOnClickListener(v -> {
-                if (isFavorited) {
+        holder.starImageView.setOnClickListener(v -> {
+            if (isFavoritesMode) {
+                removeFromFavorites(article.getUrl());
+                articleList.remove(position);
+                notifyItemRemoved(position);
+            } else {
+                if (article.isFavorited()) {
                     article.setFavorited(false);
-                    favoriteUrls.remove(articleUrl);
-                    removeFromFavorites(articleUrl);
+                    favoriteUrls.remove(article.getUrl());
+                    removeFromFavorites(article.getUrl());
                 } else {
                     article.setFavorited(true);
-                    favoriteUrls.add(articleUrl);
+                    favoriteUrls.add(article.getUrl());
                     addToFavorites(article);
                 }
                 notifyItemChanged(position);
-            });
+            }
+        });
 
-            holder.shareButton.setOnClickListener(v -> shareArticle(article));
-        }
-    }
-
-    private void shareArticle(Article article) {
-        Intent shareIntent = new Intent(Intent.ACTION_SEND);
-        shareIntent.setType("text/plain");
-
-        String shareMessage = "Check out this article:\n" +
-                article.getTitle() + "\n" + article.getUrl();
-
-        shareIntent.putExtra(Intent.EXTRA_TEXT, shareMessage);
-
-        try {
-            context.startActivity(Intent.createChooser(shareIntent, "Share article via"));
-        } catch (ActivityNotFoundException e) {
-            Toast.makeText(context, "No app available to share the article.", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private void showToast(String message) {
-        Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+        holder.shareButton.setOnClickListener(v -> {
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.setType("text/plain");
+            String shareMessage = "Check out this article:\n" + article.getTitle() + "\n" + article.getUrl();
+            shareIntent.putExtra(Intent.EXTRA_TEXT, shareMessage);
+            try {
+                context.startActivity(Intent.createChooser(shareIntent, "Share article via"));
+            } catch (ActivityNotFoundException e) {
+                Toast.makeText(context, "No app available to share the article.", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
     public int getItemCount() {
-        return (articleList != null) ? articleList.size() : 0;
-    }
-
-    public static class ArticleViewHolder extends RecyclerView.ViewHolder {
-
-        TextView titleTextView, sourceTextView;
-        ImageView starImageView, shareButton, articleImageView;
-
-        public ArticleViewHolder(View itemView) {
-            super(itemView);
-            titleTextView = itemView.findViewById(R.id.txtArticleTitle);
-            sourceTextView = itemView.findViewById(R.id.txtArticleSource);
-            starImageView = itemView.findViewById(R.id.btnFavorite);
-            shareButton = itemView.findViewById(R.id.btnShare);
-            articleImageView = itemView.findViewById(R.id.imgArticleImage);  // ← Added image view
-        }
+        return articleList.size();
     }
 
     public void updateArticles(List<Article> articles) {
@@ -171,8 +153,8 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHol
                 .collection("favorites")
                 .whereEqualTo("url", article.getUrl())
                 .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    if (queryDocumentSnapshots.isEmpty()) {
+                .addOnSuccessListener(snapshot -> {
+                    if (snapshot.isEmpty()) {
                         db.collection("user")
                                 .document(userId)
                                 .collection("favorites")
@@ -181,7 +163,7 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHol
                         showToast("This article is already favorited.");
                     }
                 })
-                .addOnFailureListener(e -> showToast("Error checking favorites."));
+                .addOnFailureListener(e -> showToast("Error adding to favorites."));
     }
 
     private void removeFromFavorites(String articleUrl) {
@@ -192,14 +174,32 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHol
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && !task.getResult().isEmpty()) {
-                        String documentId = task.getResult().getDocuments().get(0).getId();
+                        String docId = task.getResult().getDocuments().get(0).getId();
                         db.collection("user")
                                 .document(userId)
                                 .collection("favorites")
-                                .document(documentId)
+                                .document(docId)
                                 .delete();
                     }
                 });
     }
 
+    private void showToast(String msg) {
+        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
+    }
+
+    public static class ArticleViewHolder extends RecyclerView.ViewHolder {
+        TextView titleTextView, sourceTextView;
+        ImageView starImageView, shareButton, articleImageView;
+
+        public ArticleViewHolder(View itemView) {
+            super(itemView);
+            titleTextView = itemView.findViewById(R.id.txtArticleTitle);
+            sourceTextView = itemView.findViewById(R.id.txtArticleSource);
+            starImageView = itemView.findViewById(R.id.btnFavorite);
+            shareButton = itemView.findViewById(R.id.btnShare);
+            articleImageView = itemView.findViewById(R.id.imgArticleImage);
+        }
+    }
 }
+
