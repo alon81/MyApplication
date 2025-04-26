@@ -21,15 +21,6 @@ public interface IApiService {
             @Query("pageSize") int pageSize,
             @Query("apiKey") String apiKey
     );
-
-    //    @GET("top-headlines")
-//    Call<NewsResponse> getTopHeadlinesByCategory(
-//            @QueryMap String country,
-//           String category,
-//             int pageSize,
-//             String apiKey
-//
-//    );
     @GET("v2/top-headlines")
     Call<NewsResponse> getArticles(@QueryMap Map<String, String> options);
 }

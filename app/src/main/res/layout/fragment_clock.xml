@@ -23,7 +23,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
-        <!-- Top Bar with Filter (Improved design) -->
         <ImageButton
             android:id="@+id/button_filter"
             android:layout_width="56dp"
@@ -38,7 +37,7 @@
             app:layout_constraintTop_toTopOf="parent"
             app:tint="#FFFFFF" />
 
-        <!-- Clock Display (Better size and positioning) -->
+        <!-- Clock Display  -->
         <TextView
             android:id="@+id/txtClock"
             android:layout_width="wrap_content"
@@ -53,9 +52,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
-        <!-- Greeting (Softened style for a friendly feel) -->
-
-        <!-- Articles RecyclerView - with padding and extended to the sides -->
         <TextView
             android:id="@+id/txtGreeting"
             android:layout_width="wrap_content"

@@ -16,7 +16,7 @@ import com.example.myapplication.activity.MainActivity;
 
 
 public class NotificationHelper {
-    private static final String CHANNEL_ID = "NEWS_CHANNEL";
+    private static final String CHANNEL_ID = "Newsflow";
     private static final String TAG = "notification_helper";
 
     public static void showNewsNotification(Context context, String message) {

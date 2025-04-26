@@ -1,5 +1,6 @@
 
 package com.example.myapplication.fragments;
+
 import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -23,21 +24,16 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.myapplication.help.FirestoreHelper;
-import com.example.myapplication.help.NotificationScheduler;
-import com.example.myapplication.objects.Article;
-import com.example.myapplication.help.NewsAdapter;
-import com.example.myapplication.activity.MainActivity;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.example.myapplication.R;
+import com.example.myapplication.activity.MainActivity;
+import com.example.myapplication.help.FirestoreHelper;
+import com.example.myapplication.help.NewsAdapter;
+import com.example.myapplication.help.NotificationScheduler;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 
 public class ChangeInfoFragment extends Fragment {
@@ -229,6 +225,10 @@ public class ChangeInfoFragment extends Fragment {
 
         if (TextUtils.isEmpty(firstName) || TextUtils.isEmpty(lastName)) {
             Toast.makeText(getContext(), "Please fill all fields.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if(firstName.length()>20||lastName.length()<20) {
+            Toast.makeText(getContext(), "name too long.", Toast.LENGTH_SHORT).show();
             return;
         }
 

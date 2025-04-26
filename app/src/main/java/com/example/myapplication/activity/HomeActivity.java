@@ -18,7 +18,6 @@ import com.google.firebase.auth.FirebaseAuth;
 public class HomeActivity extends AppCompatActivity {
 
     private BottomNavigationView bottomNavigationView;
-    private Fragment selectedFragment = new ClockFragment();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

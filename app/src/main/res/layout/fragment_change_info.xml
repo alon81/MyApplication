@@ -13,7 +13,7 @@
         android:layout_height="match_parent"
         android:paddingHorizontal="16dp">
 
-        <!-- Star Button for Favoriting (positioned in the top-right) -->
+        <!-- Button for Favoriting  -->
         <ImageButton
             android:id="@+id/imgFavoriteStar"
             android:layout_width="48dp"

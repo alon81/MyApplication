@@ -9,11 +9,11 @@ import android.widget.Toast;
 import android.util.Patterns;
 
 import androidx.appcompat.app.AppCompatActivity;
-
-import com.example.myapplication.objects.MyUser;
+import java.util.Map;
+import java.util.HashMap;
+import com.google.android.gms.tasks.Task;
 import com.example.myapplication.R;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -50,24 +50,27 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
 
             if (email.isEmpty() || password.isEmpty() || firstName.isEmpty() || lastName.isEmpty()) {
                 Toast.makeText(RegisterActivity.this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
-                return; // Exit the method and prevent further action
+                return;
             }
-            // format
+
             if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                 Toast.makeText(RegisterActivity.this, "Invalid email format", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // min 6
             if (password.length() < 6) {
                 Toast.makeText(RegisterActivity.this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if(firstName.length()>20||lastName.length()>20) {
+                Toast.makeText(RegisterActivity.this, "name too long", Toast.LENGTH_SHORT).show();
                 return;
             }
 
 
             btnRegister.setEnabled(false);
 
-            // create user
             FirebaseAuth fbAuth = FirebaseAuth.getInstance();
             fbAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                 @Override
@@ -75,12 +78,16 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                     btnRegister.setEnabled(true);
 
                     if (task.isSuccessful()) {
-                        MyUser user = new MyUser(email, firstName, lastName);
+                        Map<String, Object> userMap = new HashMap<>();
+                        userMap.put("email", email);
+                        userMap.put("firstName", firstName);
+                        userMap.put("lastName", lastName);
 
-                        // Save user data in Firestore
                         FirebaseFirestore store = FirebaseFirestore.getInstance();
-                        store.collection("user").document(fbAuth.getCurrentUser().getUid())
-                                .set(user).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        store.collection("user")
+                                .document(fbAuth.getCurrentUser().getUid())
+                                .set(userMap)
+                                .addOnCompleteListener(new OnCompleteListener<Void>() {
                                     @Override
                                     public void onComplete(Task<Void> task) {
                                         if (task.isSuccessful()) {
@@ -95,7 +102,6 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                                     }
                                 });
                     } else {
-                        // If email is already in use or any other error during user creation
                         String errorMessage = task.getException() != null ? task.getException().getMessage() : "Error creating user.";
                         Toast.makeText(RegisterActivity.this, "Error: " + errorMessage, Toast.LENGTH_SHORT).show();
                     }
@@ -103,4 +109,5 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
             });
         }
     }
+
 }

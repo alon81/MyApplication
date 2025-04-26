@@ -1,8 +1,5 @@
 package com.example.myapplication.help;
 
-import static androidx.core.content.ContentProviderCompat.requireContext;
-import static java.security.AccessController.getContext;
-
 import android.content.Context;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
@@ -10,11 +7,11 @@ import android.widget.Toast;
 
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.myapplication.objects.Article;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.example.myapplication.objects.Article;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,10 +21,12 @@ public class FirestoreHelper {
 
     private FirebaseFirestore db;
     private FirebaseAuth auth;
-
+    private Context context;
     public FirestoreHelper(Context context) {
+        this.context = context;
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
+
     }
 
     public void loadFollowedSources(OnFollowedSourcesLoadedListener listener) {
@@ -49,11 +48,36 @@ public class FirestoreHelper {
                 });
     }
 
-    // Add a new followed source for the current user
+    //  Remove all followed sources
+    public void removeAllFollowedSources() {
+        String userId = auth.getCurrentUser().getUid();
+
+        db.collection("user")
+                .document(userId)
+                .collection("followedSources")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    for (DocumentSnapshot document : queryDocumentSnapshots) {
+                        db.collection("user")
+                                .document(userId)
+                                .collection("followedSources")
+                                .document(document.getId())
+                                .delete()
+                                .addOnSuccessListener(aVoid -> Log.d("FirestoreHelper", "Source removed: " + document.getId()))
+                                .addOnFailureListener(e -> Log.w("FirestoreHelper", "Error removing source: ", e));
+                    }
+                    Toast.makeText(context, "All sources removed.", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("FirestoreHelper", "Error getting followed sources", e);
+                    Toast.makeText(context, "Failed to remove sources.", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+
     public void addFollowedSource(String source) {
         String userId = auth.getCurrentUser().getUid();
 
-        // Chec source is already followed
         db.collection("user")
                 .document(userId)
                 .collection("followedSources")
@@ -67,17 +91,12 @@ public class FirestoreHelper {
                                 .add(new HashMap<String, Object>() {{
                                     put("source", source);
                                 }})
-                                .addOnSuccessListener(documentReference -> {
-                                    Log.d("FirestoreHelper", "Source added: " + source);
-                                })
-                                .addOnFailureListener(e -> {
-                                    Log.w("FirestoreHelper", "Error adding source: ", e);
-                                });
+                                .addOnSuccessListener(documentReference -> Log.d("FirestoreHelper", "Source added: " + source))
+                                .addOnFailureListener(e -> Log.w("FirestoreHelper", "Error adding source: ", e));
                     }
                 });
     }
 
-    // Remove a source
     public void removeFollowedSource(String source) {
         String userId = auth.getCurrentUser().getUid();
         db.collection("user")
@@ -93,16 +112,13 @@ public class FirestoreHelper {
                                 .collection("followedSources")
                                 .document(documentId)
                                 .delete()
-                                .addOnSuccessListener(aVoid -> {
-                                    Log.d("FirestoreHelper", "Source removed: " + source);
-                                })
-                                .addOnFailureListener(e -> {
-                                    Log.w("FirestoreHelper", "Error removing source: ", e);
-                                });
+                                .addOnSuccessListener(aVoid -> Log.d("FirestoreHelper", "Source removed: " + source))
+                                .addOnFailureListener(e -> Log.w("FirestoreHelper", "Error removing source: ", e));
                     }
                 });
     }
-    public void addToFavorites( Article article) {
+
+    public void addToFavorites(Article article) {
         String userId = auth.getCurrentUser().getUid();
         db.collection("user")
                 .document(userId)
@@ -122,7 +138,7 @@ public class FirestoreHelper {
                 .addOnFailureListener(e -> Log.w("FirestoreHelper", "Error adding to favorites.", e));
     }
 
-    public void removeFromFavorites(  String articleUrl) {
+    public void removeFromFavorites(String articleUrl) {
         String userId = auth.getCurrentUser().getUid();
         db.collection("user")
                 .document(userId)
@@ -139,7 +155,9 @@ public class FirestoreHelper {
                                 .delete();
                     }
                 });
-    }public void loadFavoriteArticles(Context context, RecyclerView recyclerViewFavorites, TextToSpeech tts) {
+    }
+
+    public void loadFavoriteArticles(Context context, RecyclerView recyclerViewFavorites, TextToSpeech tts) {
         String userId = auth.getCurrentUser().getUid();
         db.collection("user")
                 .document(userId)
@@ -164,8 +182,6 @@ public class FirestoreHelper {
                     Log.e("FirestoreHelper", "Error loading favorites", e);
                 });
     }
-
-
 
     public interface OnFollowedSourcesLoadedListener {
         void onFollowedSourcesLoaded(List<String> followedSources);

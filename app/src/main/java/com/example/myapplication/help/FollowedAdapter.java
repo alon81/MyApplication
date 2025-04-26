@@ -46,7 +46,7 @@ public class FollowedAdapter extends RecyclerView.Adapter<FollowedAdapter.ViewHo
         notifyDataSetChanged();
     }
 
-    private void unfollowSource(String source) {
+    public void unfollowSource(String source) {
         firestoreHelper.removeFollowedSource(source);
         sources.remove(source);
         notifyDataSetChanged();

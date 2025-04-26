@@ -1,7 +1,5 @@
 package com.example.myapplication.help;
 
-import static java.security.AccessController.getContext;
-
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
@@ -20,8 +18,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.myapplication.R;
 import com.example.myapplication.objects.Article;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashSet;
 import java.util.List;
@@ -30,23 +26,18 @@ import java.util.Set;
 
 public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHolder> {
 
-    private  List<Article> articleList;
-    private  Context context;
-    private  FirebaseFirestore db;
-    private  String userId;
-    private  Set<String> favoriteUrls = new HashSet<>();
+    private final List<Article> articleList;
+    private final Context context;
+    private final Set<String> favoriteUrls = new HashSet<>();
     private TextToSpeech textToSpeech;
-    private  boolean isFavoritesMode;
-    private FirestoreHelper firestoreHelper;
+    private final boolean isFavoritesMode;
+    private final FirestoreHelper firestoreHelper;
 
 
     public NewsAdapter(List<Article> articles, Context context, boolean isFavoritesMode) {
         this.articleList = articles;
         this.context = context;
         this.isFavoritesMode = isFavoritesMode;
-//        this.textToSpeech = tts;
-        this.db = FirebaseFirestore.getInstance();
-        this.userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         this.firestoreHelper = new FirestoreHelper(context);
 
     }
@@ -102,7 +93,7 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHol
             holder.starImageView.setImageResource(R.drawable.ic_fav_fill);
             holder.starImageView.setColorFilter(Color.RED);
         } else {
-            boolean isFavorited = article.isFavorited();
+            boolean isFavorited = article.getFavorited();
             holder.starImageView.setImageResource(isFavorited ? R.drawable.ic_fav_fill : R.drawable.ic_fav);
             holder.starImageView.setColorFilter(isFavorited ? Color.RED : Color.GRAY);
         }
@@ -113,7 +104,7 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHol
                 articleList.remove(position);
                 notifyItemRemoved(position);
             } else {
-                if (article.isFavorited()) {
+                if (article.getFavorited()) {
                     article.setFavorited(false);
                     favoriteUrls.remove(article.getUrl());
                     firestoreHelper.removeFromFavorites(article.getUrl());

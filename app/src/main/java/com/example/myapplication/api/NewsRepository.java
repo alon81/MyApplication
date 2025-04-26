@@ -24,6 +24,7 @@ public class NewsRepository {
     private IApiService apiService;
     private FirebaseFirestore db;
     private FirebaseAuth auth;
+    private static final String API_KEY = "176ca19806d8486eb27058d1ed8fc3f9";
 
     public NewsRepository() {
         apiService = ApiClient.getClient().create(IApiService.class);
@@ -31,7 +32,6 @@ public class NewsRepository {
         auth = FirebaseAuth.getInstance();
     }
 
-    private static final String API_KEY = "176ca19806d8486eb27058d1ed8fc3f9";
 
     public void getSources(Callback<SourcesResponse> callback) {
         Call<SourcesResponse> call = apiService.getNewsSources(API_KEY);
@@ -39,7 +39,7 @@ public class NewsRepository {
     }
 
     // Fetch articles by specific sources so they are sorted only by newest
-    public void getArticlesBySources(String sources, String sortBy, int pageSize, ApiCallBack<NewsResponse> callback) {
+    public void getArticlesBySources(String sources, String sortBy, int pageSize, IApiCallBack<NewsResponse> callback) {
         if (sources == null || sources.isEmpty()) {
             Log.e(TAG, "Sources parameter is empty or null");
             callback.OnFail();
@@ -80,19 +80,15 @@ public class NewsRepository {
             }
         });
     }
-    public void getArticlesByCategory(String category, ApiCallBack<NewsResponse> callBack) {
+    public void getArticlesByCategory(String category, IApiCallBack<NewsResponse> callBack) {
         // Input validation
         if (category == null || category.isEmpty()) {
             Log.e("NewsRepository", "Category parameter is empty or null");
             callBack.OnFail();
             return;
         }
-
         // Log the request details
-        Log.d("NewsRepository", "--------------------------------------------------");
         Log.d("NewsRepository", "Preparing API request for category: " + category);
-        Log.d("NewsRepository", "Country: us | PageSize: 100");
-        Log.d("NewsRepository", "--------------------------------------------------");
 
         // Prepare the API request
         Call<NewsResponse> call = apiService.getTopHeadlinesByCategory("us", category, 100 ,API_KEY); // Ensure API call uses proper parameters
@@ -101,12 +97,12 @@ public class NewsRepository {
         call.enqueue(new Callback<NewsResponse>() {
             @Override
             public void onResponse(Call<NewsResponse> call, Response<NewsResponse> response) {
-                Log.d("NewsRepository", "✅ API call completed. HTTP Code: " + response.code());
+                Log.d("NewsRepository", " API call completed. HTTP Code: " + response.code());
 
                 // Check if the response is successful
                 if (response.isSuccessful() && response.body() != null) {
                     List<Article> articles = response.body().getArticles();
-                    Log.d("NewsRepository", "✅ Success. Article count: " + articles.size());
+                    Log.d("NewsRepository", " Success. Article count: " + articles.size());
 
                     // Log each article's title
                     for (Article article : articles) {
@@ -117,12 +113,12 @@ public class NewsRepository {
                     callBack.OnSucces(response.body());
                 } else {
                     // If the response failed, log the error
-                    Log.e("NewsRepository", "❌ Response failed or body was null.");
+                    Log.e("NewsRepository", " Response failed or body was null.");
                     if (response.errorBody() != null) {
                         try {
-                            Log.e("NewsRepository", "🧾 Error body: " + response.errorBody().string());
+                            Log.e("NewsRepository", " Error body: " + response.errorBody().string());
                         } catch (IOException e) {
-                            Log.e("NewsRepository", "⚠️ Failed to read errorBody", e);
+                            Log.e("NewsRepository", "⚠ Failed to read errorBody", e);
                         }
                     }
                     callBack.OnFail();
@@ -132,7 +128,7 @@ public class NewsRepository {
             @Override
             public void onFailure(Call<NewsResponse> call, Throwable t) {
                 // Log the network failure
-                Log.e("NewsRepository", "💥 API call failed: " + t.getMessage(), t);
+                Log.e("NewsRepository", " API call failed: " + t.getMessage(), t);
                 callBack.OnFail();
             }
         });
@@ -145,7 +141,7 @@ public class NewsRepository {
 
 
     // Fetch followed sources from Firebase and get articles from them
-    public void getArticlesByFollowedSources(String sortBy, ApiCallBack<NewsResponse> callback) {
+    public void getArticlesByFollowedSources(String sortBy, IApiCallBack<NewsResponse> callback) {
         String userId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : null;
         if (userId == null) {
             Log.e(TAG, "User not logged in");

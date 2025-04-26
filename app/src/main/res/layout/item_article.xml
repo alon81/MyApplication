@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:padding="16dp">
 
-        <!-- Article Image at the top -->
+        <!-- Article Image  -->
         <ImageView
             android:id="@+id/imgArticleImage"
             android:layout_width="0dp"
@@ -26,7 +26,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             android:background="#2A2A2A" />
 
-        <!-- Title below the image -->
+        <!-- Title  -->
         <TextView
             android:id="@+id/txtArticleTitle"
             android:layout_width="0dp"
@@ -42,7 +42,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
-        <!-- Action container moved to the left of the source -->
+        <!-- Action container e -->
         <LinearLayout
             android:id="@+id/actionContainer"
             android:layout_width="wrap_content"
@@ -53,7 +53,7 @@
             app:layout_constraintBottom_toBottomOf="@id/txtArticleSource"
             app:layout_constraintStart_toStartOf="parent">
 
-            <!-- Favorite Button as ImageView with gray color -->
+            <!-- Favorite Button -->
             <ImageView
                 android:id="@+id/btnFavorite"
                 android:layout_width="36dp"
@@ -66,7 +66,7 @@
                 app:tint="#808080"
                 android:contentDescription="Favorite Article" />
 
-            <!-- Share Button as ImageView with gray color -->
+            <!-- Share Button  -->
             <ImageView
                 android:id="@+id/btnShare"
                 android:layout_width="36dp"
@@ -80,7 +80,7 @@
                 android:contentDescription="Share Article" />
         </LinearLayout>
 
-        <!-- Source moved to the right of the action container -->
+        <!-- Source  -->
         <TextView
             android:id="@+id/txtArticleSource"
             android:layout_width="0dp"

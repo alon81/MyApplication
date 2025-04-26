@@ -2,23 +2,14 @@ package com.example.myapplication.objects;
 
 public class Article {
     private Source source;
-
     private String title;
-
     private String url;
     private String urlToImage;
     private String content;
     private boolean isFavorited;
 
-    // Getter and Setter for isFavorited
-    public boolean isFavorited() {
-        return isFavorited;
-    }
 
-    public void setFavorited(boolean isFavorited) {
-        this.isFavorited = isFavorited;
-    }
-public Article (){}
+    public Article (){}
     public Source getSource() { return source; }
     public void setSource(Source source) { this.source = source; }
     public String getTitle() { return title; }
@@ -30,4 +21,9 @@ public Article (){}
 
     public String getContent() { return content; }
     public void setContent(String content) { this.content = content; }
+    public boolean getFavorited() {
+        return isFavorited;
+    }
+
+    public void setFavorited(boolean isFavorited) {this.isFavorited = isFavorited;}
 }

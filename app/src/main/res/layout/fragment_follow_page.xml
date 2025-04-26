@@ -13,7 +13,6 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- First line: image button and Add by Category -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -21,7 +20,7 @@
             android:layout_marginBottom="16dp"
             android:gravity="center_vertical">
 
-            <!-- Category selection ImageButton -->
+            <!-- Category Button -->
             <ImageButton
                 android:id="@+id/imageButtonSelectCategory"
                 android:layout_width="48dp"
@@ -32,7 +31,7 @@
                 app:tint="#ffffff"
                 android:layout_marginEnd="12dp" />
 
-            <!-- Add by Category button -->
+            <!-- Add Category button -->
             <Button
                 android:id="@+id/buttonAddCategorySources"
                 android:layout_width="0dp"
@@ -53,7 +52,6 @@
 
         </LinearLayout>
 
-        <!-- Second line: EditText and Add by Name -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -61,7 +59,7 @@
             android:layout_marginBottom="16dp"
             android:gravity="center_vertical">
 
-            <!-- EditText for source name -->
+            <!-- EditText name -->
             <EditText
                 android:id="@+id/editTextSourceName"
                 android:layout_width="0dp"
@@ -78,7 +76,7 @@
                 android:drawablePadding="8dp"
                 android:background="@android:color/transparent" />
 
-            <!-- Add by Name button -->
+            <!-- Add Name button -->
             <Button
                 android:id="@+id/buttonAddSource"
                 android:layout_width="0dp"

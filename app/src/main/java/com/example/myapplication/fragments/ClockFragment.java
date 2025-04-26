@@ -8,7 +8,6 @@ import android.os.Handler;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
@@ -22,12 +21,12 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.myapplication.objects.Article;
-import com.example.myapplication.help.NewsAdapter;
-import com.example.myapplication.api.NewsRepository;
-import com.example.myapplication.objects.NewsResponse;
 import com.example.myapplication.R;
-import com.example.myapplication.api.ApiCallBack;
+import com.example.myapplication.api.IApiCallBack;
+import com.example.myapplication.api.NewsRepository;
+import com.example.myapplication.help.NewsAdapter;
+import com.example.myapplication.objects.Article;
+import com.example.myapplication.objects.NewsResponse;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
@@ -45,6 +44,7 @@ import java.util.TimeZone;
 
 public class ClockFragment extends Fragment {
 
+    private final Handler clockHandler = new Handler();
     private List<String> favoriteUrls = new ArrayList<>();
     private TextView txtClock, txtGreeting;
     private ImageView imgBackground;
@@ -52,7 +52,6 @@ public class ClockFragment extends Fragment {
     private NewsAdapter newsAdapter;
     private FirebaseAuth fbAuth;
     private FirebaseFirestore db;
-    private final Handler clockHandler = new Handler();
     private NewsRepository newsRepository;
     private TextToSpeech textToSpeech;
 
@@ -121,7 +120,7 @@ public class ClockFragment extends Fragment {
 
     private void fetchArticlesFromFollowedSources() {
         Log.d("ArticleFetch", "Fetching articles from followed sources...");
-        newsRepository.getArticlesByFollowedSources("publishedAt", new ApiCallBack<NewsResponse>() {
+        newsRepository.getArticlesByFollowedSources("publishedAt", new IApiCallBack<NewsResponse>() {
             @Override
             public void OnSucces(NewsResponse response) {
                 if (response != null && response.getArticles() != null && !response.getArticles().isEmpty()) {
@@ -204,10 +203,7 @@ public class ClockFragment extends Fragment {
     }
 
     private void fetchArticlesWithFilter(String selectedCategory) {
-        Log.d("CategoryFilter", "============================");
         Log.d("CategoryFilter", "Fetch initiated. Category: " + selectedCategory);
-        Log.d("CategoryFilter", "============================");
-
         if (selectedCategory.equals("none")) {
             Log.d("CategoryFilter", "Selected category is 'none', fetching from followed sources...");
             fetchArticlesFromFollowedSources();
@@ -218,14 +214,14 @@ public class ClockFragment extends Fragment {
         newsAdapter.updateArticles(new ArrayList<>());  // Clear existing articles in the adapter
 
         // Fetch all articles by category (the category filter applied here)
-        newsRepository.getArticlesByCategory(selectedCategory, new ApiCallBack<NewsResponse>() {
+        newsRepository.getArticlesByCategory(selectedCategory, new IApiCallBack<NewsResponse>() {
             @Override
             public void OnSucces(NewsResponse response) {
                 List<Article> allCategoryArticles = response.getArticles();
-                Log.d("CategoryFilter", "✅ Articles received for category '" + selectedCategory + "': " + (allCategoryArticles != null ? allCategoryArticles.size() : 0));
+                Log.d("CategoryFilter", " Articles received for category '" + selectedCategory + "': " + (allCategoryArticles != null ? allCategoryArticles.size() : 0));
 
                 if (allCategoryArticles == null || allCategoryArticles.isEmpty()) {
-                    Log.w("CategoryFilter", "⚠️ No articles found for: " + selectedCategory);
+                    Log.w("CategoryFilter", "No articles found for: " + selectedCategory);
                     Toast.makeText(getContext(), "No articles found for category: " + selectedCategory, Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -236,7 +232,7 @@ public class ClockFragment extends Fragment {
 
             @Override
             public void OnFail() {
-                Log.e("CategoryFilter", "❌ Failed to fetch articles for category: " + selectedCategory);
+                Log.e("CategoryFilter", " Failed to fetch articles for category: " + selectedCategory);
                 showErrorMessage();
             }
         });
@@ -244,7 +240,7 @@ public class ClockFragment extends Fragment {
 
     private void filterArticlesFromFollowedSources(List<Article> allCategoryArticles) {
         // Fetch followed sources
-        newsRepository.getArticlesByFollowedSources("publishedAt", new ApiCallBack<NewsResponse>() {
+        newsRepository.getArticlesByFollowedSources("publishedAt", new IApiCallBack<NewsResponse>() {
             @Override
             public void OnSucces(NewsResponse response) {
                 if (response != null && response.getArticles() != null) {
@@ -268,21 +264,21 @@ public class ClockFragment extends Fragment {
                     }
 
                     if (!filteredArticles.isEmpty()) {
-                        Log.d("CategoryFilter", "✅ Filtered articles from followed sources: " + filteredArticles.size());
+                        Log.d("CategoryFilter", " Filtered articles from followed sources: " + filteredArticles.size());
                         loadfavArticles(filteredArticles); // Load favorite articles and update the adapter
                     } else {
-                        Log.w("CategoryFilter", "⚠️ No articles found for the selected category and followed sources.");
+                        Log.w("CategoryFilter", " No articles found for the selected category and followed sources.");
                         Toast.makeText(getContext(), "No articles found for this category and your followed sources.", Toast.LENGTH_SHORT).show();
                     }
                 } else {
-                    Log.e("CategoryFilter", "❌ Failed to fetch followed sources.");
+                    Log.e("CategoryFilter", " Failed to fetch followed sources.");
                     showErrorMessage();
                 }
             }
 
             @Override
             public void OnFail() {
-                Log.e("CategoryFilter", "❌ Failed to fetch articles from followed sources.");
+                Log.e("CategoryFilter", " Failed to fetch articles from followed sources.");
                 showErrorMessage();
             }
         });
