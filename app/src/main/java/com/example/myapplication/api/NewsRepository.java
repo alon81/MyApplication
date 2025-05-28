@@ -38,7 +38,7 @@ public class NewsRepository {
         call.enqueue(callback);
     }
 
-    // Fetch articles by specific sources so they are sorted only by newest
+    // Fetch articles by specific sources
     public void getArticlesBySources(String sources, String sortBy, int pageSize, IApiCallBack<NewsResponse> callback) {
         if (sources == null || sources.isEmpty()) {
             Log.e(TAG, "Sources parameter is empty or null");
@@ -81,19 +81,18 @@ public class NewsRepository {
         });
     }
     public void getArticlesByCategory(String category, IApiCallBack<NewsResponse> callBack) {
-        // Input validation
+        // validation
         if (category == null || category.isEmpty()) {
             Log.e("NewsRepository", "Category parameter is empty or null");
             callBack.OnFail();
             return;
         }
-        // Log the request details
         Log.d("NewsRepository", "Preparing API request for category: " + category);
 
-        // Prepare the API request
-        Call<NewsResponse> call = apiService.getTopHeadlinesByCategory("us", category, 100 ,API_KEY); // Ensure API call uses proper parameters
+        // Prepare API request
+        Call<NewsResponse> call = apiService.getTopHeadlinesByCategory("us", category, 100 ,API_KEY);
 
-        // Execute the API request
+        // Execute API request
         call.enqueue(new Callback<NewsResponse>() {
             @Override
             public void onResponse(Call<NewsResponse> call, Response<NewsResponse> response) {
@@ -104,7 +103,7 @@ public class NewsRepository {
                     List<Article> articles = response.body().getArticles();
                     Log.d("NewsRepository", " Success. Article count: " + articles.size());
 
-                    // Log each article's title
+
                     for (Article article : articles) {
                         Log.d("NewsRepository", "→ " + article.getTitle());
                     }
@@ -112,7 +111,6 @@ public class NewsRepository {
                     // Pass the successful response to the callback
                     callBack.OnSucces(response.body());
                 } else {
-                    // If the response failed, log the error
                     Log.e("NewsRepository", " Response failed or body was null.");
                     if (response.errorBody() != null) {
                         try {
@@ -127,7 +125,6 @@ public class NewsRepository {
 
             @Override
             public void onFailure(Call<NewsResponse> call, Throwable t) {
-                // Log the network failure
                 Log.e("NewsRepository", " API call failed: " + t.getMessage(), t);
                 callBack.OnFail();
             }
@@ -167,8 +164,8 @@ public class NewsRepository {
                             String sources = String.join(",", sourcesList);
                             Log.d(TAG, "Sources for API: " + sources);
 
-                            // Adjusted to fetch more articles and sorted by newest
-                            getArticlesBySources(sources, sortBy, 100, callback); // Fetch up to 100 articles sorted by newest
+                            //  fetch more articles and sorted by newest
+                            getArticlesBySources(sources, sortBy, 100, callback);
                         } else {
                             Log.e(TAG, "No followed sources found");
                             callback.OnFail();

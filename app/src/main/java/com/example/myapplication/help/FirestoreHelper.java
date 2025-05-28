@@ -174,7 +174,7 @@ public class FirestoreHelper {
                     }
 
                     NewsAdapter adapter = new NewsAdapter(favoriteArticles, context, true);
-                    adapter.setTextToSpeech(tts); // ✅ Pass the TTS instance
+                    adapter.setTextToSpeech(tts);
                     recyclerViewFavorites.setAdapter(adapter);
                 })
                 .addOnFailureListener(e -> {

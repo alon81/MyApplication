@@ -45,8 +45,8 @@ public class ChangeInfoFragment extends Fragment {
     private FirebaseFirestore db;
     private String userId;
     private NewsAdapter newsAdapter;
-    private ImageView starImageView; // For the star button
-    private TextToSpeech textToSpeech; // Text-to-Speech engine
+    private ImageView starImageView;
+    private TextToSpeech textToSpeech;
     private static final String PREFS_NAME = "MyPrefs";
     private static final String KEY_NOTIF_ENABLED = "notifications_enabled";
     private static final String KEY_HOUR = "notification_hour";
@@ -62,7 +62,7 @@ public class ChangeInfoFragment extends Fragment {
         etLastName = view.findViewById(R.id.etLastName);
         txtEmail = view.findViewById(R.id.txtEmail);
         btnSaveChanges = view.findViewById(R.id.btnSaveChanges);
-        starImageView = view.findViewById(R.id.imgFavoriteStar);  // Initialize star image view
+        starImageView = view.findViewById(R.id.imgFavoriteStar);
         ImageButton notifToggleBtn;
 
         setHasOptionsMenu(true);
@@ -116,13 +116,12 @@ public class ChangeInfoFragment extends Fragment {
 
         btnSaveChanges.setOnClickListener(v -> saveChanges());
 
-        // Star icon click listener to open favorites popup
         starImageView.setOnClickListener(v -> openFavoritesPopup());
 
         return view;
     }
 
-    // Display user details in the form
+    // Display user
     private void displayUserDetails() {
         DocumentReference userRef = db.collection("user").document(userId);
         userRef.get().addOnCompleteListener(task -> {
@@ -142,7 +141,7 @@ public class ChangeInfoFragment extends Fragment {
         boolean isEnabled = prefs.getBoolean(KEY_NOTIF_ENABLED, false);
 
         if (!isEnabled) {
-            showTimePickerDialog(); // Pick time and schedule
+            showTimePickerDialog();
         } else {
             cancelNotifications();
             SharedPreferences.Editor editor = prefs.edit();
@@ -186,12 +185,10 @@ public class ChangeInfoFragment extends Fragment {
     private void cancelNotifications() {
         NotificationScheduler.cancelNotification(requireContext());
     }
-    // Open the favorites popup when star is clicked
+
     private void openFavoritesPopup() {
-        // Inflate the popup layout
         View popupView = LayoutInflater.from(getContext()).inflate(R.layout.popup_favorites, null);
 
-        // Set up RecyclerView
         RecyclerView recyclerViewFavorites = popupView.findViewById(R.id.recyclerViewFavorites);
         recyclerViewFavorites.setLayoutManager(new LinearLayoutManager(getContext()));
 
@@ -199,23 +196,20 @@ public class ChangeInfoFragment extends Fragment {
         FirestoreHelper firestoreHelper = new FirestoreHelper(requireContext());
         firestoreHelper.loadFavoriteArticles(requireContext(), recyclerViewFavorites, textToSpeech);
 
-        // Create the PopupWindow
         android.widget.PopupWindow popupWindow = new android.widget.PopupWindow(
                 popupView,
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT,
-                true // Focusable to allow dismissal when clicking outside
+                true
         );
 
         // Allow dismissal when tapping outside
         popupWindow.setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
         popupWindow.setOutsideTouchable(true);
 
-        // Close button logic
+        // Close button
         Button closeButton = popupView.findViewById(R.id.btnClosePopup);
         closeButton.setOnClickListener(v -> popupWindow.dismiss());
-
-        // Show the PopupWindow
         popupWindow.showAtLocation(getView(), android.view.Gravity.CENTER, 0, 0);
     }
 

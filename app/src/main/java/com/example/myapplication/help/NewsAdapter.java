@@ -64,7 +64,7 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ArticleViewHol
                     .into(holder.articleImageView);
         } else {
             Glide.with(context)
-                    .load(R.drawable.ic_error) // Default image
+                    .load(R.drawable.ic_error)
                     .into(holder.articleImageView);
         }
 

@@ -143,11 +143,11 @@ public class ClockFragment extends Fragment {
 
 
     private void showFilterMenu(View anchor) {
-        // Create a PopupMenu attached to the anchor view
+
         PopupMenu popup = new PopupMenu(requireContext(), anchor);
         popup.getMenuInflater().inflate(R.menu.menu_filter, popup.getMenu());
 
-        // Force menu icons to show using reflection
+        // Force menu icons to show
         try {
             Field[] fields = popup.getClass().getDeclaredFields();
             for (Field field : fields) {
@@ -166,10 +166,10 @@ public class ClockFragment extends Fragment {
 
         // Handle menu item selection
         popup.setOnMenuItemClickListener(item -> {
-            
-            String selectedCategory = "";  // Default category
 
-            // Determine the selected category based on the item clicked
+            String selectedCategory = "";
+
+
             if (item.getItemId() == R.id.category_none) {
                 selectedCategory = "none";
             } else if (item.getItemId() == R.id.category_business) {
@@ -211,9 +211,8 @@ public class ClockFragment extends Fragment {
         }
 
         Log.d("CategoryFilter", "Clearing old articles from adapter...");
-        newsAdapter.updateArticles(new ArrayList<>());  // Clear existing articles in the adapter
-
-        // Fetch all articles by category (the category filter applied here)
+        newsAdapter.updateArticles(new ArrayList<>());
+        // Fetch all articles by category
         newsRepository.getArticlesByCategory(selectedCategory, new IApiCallBack<NewsResponse>() {
             @Override
             public void OnSucces(NewsResponse response) {
@@ -226,7 +225,6 @@ public class ClockFragment extends Fragment {
                     return;
                 }
 
-                // Fetch followed sources from Firebase and filter the articles
                 filterArticlesFromFollowedSources(allCategoryArticles);
             }
 
@@ -237,9 +235,8 @@ public class ClockFragment extends Fragment {
             }
         });
     }
-
+    // Fetch followed sources from Firebase and filter the articles
     private void filterArticlesFromFollowedSources(List<Article> allCategoryArticles) {
-        // Fetch followed sources
         newsRepository.getArticlesByFollowedSources("publishedAt", new IApiCallBack<NewsResponse>() {
             @Override
             public void OnSucces(NewsResponse response) {
@@ -265,7 +262,7 @@ public class ClockFragment extends Fragment {
 
                     if (!filteredArticles.isEmpty()) {
                         Log.d("CategoryFilter", " Filtered articles from followed sources: " + filteredArticles.size());
-                        loadfavArticles(filteredArticles); // Load favorite articles and update the adapter
+                        loadfavArticles(filteredArticles);
                     } else {
                         Log.w("CategoryFilter", " No articles found for the selected category and followed sources.");
                         Toast.makeText(getContext(), "No articles found for this category and your followed sources.", Toast.LENGTH_SHORT).show();
@@ -290,11 +287,11 @@ public class ClockFragment extends Fragment {
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     if (queryDocumentSnapshots != null) {
-                        favoriteUrls.clear();  // Clear existing data
+                        favoriteUrls.clear();
                         for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
                             String url = documentSnapshot.getString("url");
                             if (url != null) {
-                                favoriteUrls.add(url);  // Add the URL to the favorite list
+                                favoriteUrls.add(url);
                             }
                         }
                         updateArticlesWithFavorites(allArticles);
@@ -310,7 +307,7 @@ public class ClockFragment extends Fragment {
             boolean isFavorited = favoriteUrls.contains(article.getUrl());
             article.setFavorited(isFavorited);
         }
-        newsAdapter.updateArticles(articles);  // Update the adapter to reflect the new favorite state
+        newsAdapter.updateArticles(articles);
     }
 
 
@@ -356,10 +353,9 @@ public class ClockFragment extends Fragment {
                 SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
                 txtClock.setText(dateFormat.format(calendar.getTime()));
 
-                // Update background based on current hour
                 updateBackground(calendar.get(Calendar.HOUR_OF_DAY));
 
-                // Run clock update every 1 second
+                // clock
                 clockHandler.postDelayed(this, 1000);
             }
         }, 0);
@@ -387,3 +383,4 @@ public class ClockFragment extends Fragment {
     }
 
 }
+

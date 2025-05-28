@@ -42,18 +42,18 @@ public class MainActivity extends AppCompatActivity {
         btnGoToRegister = findViewById(R.id.btnRegister);
         btnForgotPassword = findViewById(R.id.btnForgotPassword);
 
-        // Login button click handler
+        // Login button
         btnLogin.setOnClickListener(view -> {
             String email = etLoginEmail.getText().toString().trim();
             String password = etLoginPassword.getText().toString().trim();
 
-            // Validate input
+            // Validate
             if (email.isEmpty() || password.isEmpty()) {
                 Toast.makeText(MainActivity.this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // Validate email format
+            // Validate
             if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                 Toast.makeText(MainActivity.this, "Invalid email format", Toast.LENGTH_SHORT).show();
                 return;
@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
                         } else {
                             String errorMessage = task.getException() != null ? task.getException().getMessage() : "Login failed. Try again.";
                             Toast.makeText(MainActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
-                            Log.e("LoginError", errorMessage); // Logs the error message for debugging
+                            Log.e("LoginError", errorMessage);
                         }
                     });
         });
@@ -79,10 +79,9 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        // Forgot Password button click handler
+        // Forgot Password button
         btnForgotPassword.setOnClickListener(view -> resetPassword());
     }
-//reset pass
     private void resetPassword() {
         String email = etLoginEmail.getText().toString().trim();
 

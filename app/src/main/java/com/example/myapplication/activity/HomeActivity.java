@@ -25,10 +25,10 @@ public class HomeActivity extends AppCompatActivity {
 
         // Check if user is signed in before continuing
         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
-            // If not signed in, redirect to the login activity
+            // If not signed in redirect to the login activity
             Intent intent = new Intent(HomeActivity.this, MainActivity.class);
             startActivity(intent);
-            finish(); // Close the current activity so the user can't return here without signing in
+            finish();
             return;
         }
 
@@ -47,7 +47,7 @@ public class HomeActivity extends AppCompatActivity {
             return true;
         });
 
-        // Set default fragment if no saved instance state
+        // Set default fragment
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.fragment_container, new ClockFragment())

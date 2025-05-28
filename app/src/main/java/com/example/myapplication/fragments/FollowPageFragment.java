@@ -48,34 +48,27 @@ import retrofit2.Response;
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_follow_page, container, false);
 
-        // Initialize buttons
         buttonAddSource = view.findViewById(R.id.buttonAddSource);
         buttonAddSource.setOnClickListener(this::onAddSourceButtonClicked);
 
-        // Set up for category selection
-        buttonSelectCategory = view.findViewById(R.id.imageButtonSelectCategory); // Ensure correct ID
+        buttonSelectCategory = view.findViewById(R.id.imageButtonSelectCategory);
         buttonAddCategorySources = view.findViewById(R.id.buttonAddCategorySources);
         Button removeAllSourcesButton = view.findViewById(R.id.removeAllSourcesButton);
 
-        // Initialize other views
         rvFollowedSources = view.findViewById(R.id.rvFollowedSources);
         editTextSourceName = view.findViewById(R.id.editTextSourceName);
         firestoreHelper = new FirestoreHelper(getContext());
 
-        // Set up RecyclerView
         rvFollowedSources.setLayoutManager(new LinearLayoutManager(getContext()));
         followedAdapter = new FollowedAdapter(getContext(), firestoreHelper);
         rvFollowedSources.setAdapter(followedAdapter);
 
-        // Set up remove all sources button
         removeAllSourcesButton.setOnClickListener(v -> firestoreHelper.removeAllFollowedSources());
 
-        // Category selection via PopupMenu
         buttonSelectCategory.setOnClickListener(v -> {
             PopupMenu popup = new PopupMenu(getContext(), buttonSelectCategory);
             popup.getMenuInflater().inflate(R.menu.menu_filter, popup.getMenu());
 
-            // Force the icons to be displayed in the PopupMenu
             try {
                 Field[] fields = popup.getClass().getDeclaredFields();
                 for (Field field : fields) {
@@ -92,7 +85,7 @@ import retrofit2.Response;
                 Log.e("PopupMenu", "Error forcing menu icons to show", e);
             }
 
-            // Handle category item selection
+
             popup.setOnMenuItemClickListener(item -> {
                 if (item.getItemId() == R.id.category_business) {
                     selectedCategory = "business";
@@ -110,18 +103,15 @@ import retrofit2.Response;
                     selectedCategory = "technology";
                 }
 
-                // Show a toast with the selected category, only if context is available
                 if (getContext() != null) {
                     Toast.makeText(getContext(), "Selected: " + selectedCategory, Toast.LENGTH_SHORT).show();
                 }
                 return true;
             });
 
-            // Show the popup menu
             popup.show();
         });
 
-        // Handle adding sources by selected category
         buttonAddCategorySources.setOnClickListener(v -> {
             if (selectedCategory != null) {
                 addSourcesByCategory(selectedCategory);
@@ -135,7 +125,6 @@ import retrofit2.Response;
             }
         });
 
-        // Load followed sources
         loadFollowedSources();
 
         return view;
@@ -167,8 +156,7 @@ import retrofit2.Response;
                         loadFollowedSources();
                     }
 
-                    // Refresh the list of followed sources
-                    loadFollowedSources();  // This will update the RecyclerView with the new data
+                    loadFollowedSources();
 
                     if (getContext() != null) {
                         Toast.makeText(getContext(), "Added " + matchingSources.size() + " sources.", Toast.LENGTH_SHORT).show();
@@ -198,7 +186,7 @@ import retrofit2.Response;
                     }
                 }
                 followedAdapter.setSources(followedSources);
-                followedAdapter.notifyDataSetChanged();  // Notify adapter to refresh the data
+                followedAdapter.notifyDataSetChanged();
             }
         });
     }
@@ -214,7 +202,6 @@ import retrofit2.Response;
             return;
         }
 
-        // Check if the source is supported by NewsAPI before adding it
         checkIfSourceIsSupported(sourceName);
     }
 
