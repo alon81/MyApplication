@@ -354,7 +354,7 @@ public class ClockFragment extends Fragment {
 
                 updateBackground(calendar.get(Calendar.HOUR_OF_DAY));
 
-                // clock
+
                 clockHandler.postDelayed(this, 1000);
             }
         }, 0);
