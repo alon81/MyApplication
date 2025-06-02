@@ -74,7 +74,7 @@ public class ChangeInfoFragment extends Fragment {
 
         logoutButton.setOnClickListener(v -> {
             FirebaseAuth.getInstance().signOut();
-            Intent intent = new Intent(getActivity(), MainActivity.class); // back to login
+            Intent intent = new Intent(getActivity(), MainActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
         });
@@ -203,11 +203,11 @@ public class ChangeInfoFragment extends Fragment {
                 true
         );
 
-        // Allow dismissal when tapping outside
+
         popupWindow.setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
         popupWindow.setOutsideTouchable(true);
 
-        // Close button
+
         Button closeButton = popupView.findViewById(R.id.btnClosePopup);
         closeButton.setOnClickListener(v -> popupWindow.dismiss());
         popupWindow.showAtLocation(getView(), android.view.Gravity.CENTER, 0, 0);

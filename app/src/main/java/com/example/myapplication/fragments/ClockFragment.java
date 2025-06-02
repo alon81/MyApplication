@@ -126,7 +126,7 @@ public class ClockFragment extends Fragment {
                 if (response != null && response.getArticles() != null && !response.getArticles().isEmpty()) {
                     List<Article> articles = response.getArticles();
                     Log.d("ArticleFetch", "Fetched " + articles.size() + " articles from followed sources.");
-                    loadfavArticles(articles);  // Fetch favorites and update the adapter
+                    loadfavArticles(articles);
                 } else {
                     Log.d("ArticleFetch", "No articles found from followed sources.");
                     Toast.makeText(getContext(), "No articles found for your followed sources.", Toast.LENGTH_SHORT).show();
@@ -212,7 +212,6 @@ public class ClockFragment extends Fragment {
 
         Log.d("CategoryFilter", "Clearing old articles from adapter...");
         newsAdapter.updateArticles(new ArrayList<>());
-        // Fetch all articles by category
         newsRepository.getArticlesByCategory(selectedCategory, new IApiCallBack<NewsResponse>() {
             @Override
             public void OnSucces(NewsResponse response) {
